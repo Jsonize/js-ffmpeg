@@ -1,0 +1,22 @@
+{
+	"name": "js-ffmpeg",
+	"description": "JS FFMpeg",
+	"version": "0.0.1",
+	"author": "Ziggeo",
+	"repository": "https://github.com/jsonize/jsffmpeg",
+	"license": "Apache-2.0",
+    "engines": {
+	    "node": ""
+ 	},
+	"devDependencies": {
+		"grunt": "",
+        "grunt-node-qunit": "",
+        "qunit": "",
+        "grunt-contrib-jshint": ""
+	},
+	"dependencies": {
+	    "tmp": "",
+	    "betajs-scoped": "git://github.com/betajs/betajs-scoped.git",
+	    "betajs": "git://github.com/betajs/betajs.git"
+	}	
+}
