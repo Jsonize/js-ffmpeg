@@ -22,11 +22,14 @@ Scoped.require([
 				};
 				json.streams.forEach(function (stream) {
 					if (stream.codec_type === 'video') {
+						var rotation = stream.tags && stream.tags.rotate ? parseInt(stream.tags.rotate, 10) : 0; 
 						result.video = {
 							index: stream.index,
-							rotation: stream.tags && stream.tags.rotate ? parseInt(stream.tags.rotate, 10) : 0,
+							rotation: rotation,
 							width: stream.width,
 							height: stream.height,
+							rotated_width: rotation % 180 === 0 ? stream.width : stream.height,
+							rotated_height: rotation % 180 === 0 ? stream.height : stream.width,
 							codec_name: stream.codec_tag_string,
 							codec_long_name: stream.codec_long_name,
 							codec_profile: stream.profile,

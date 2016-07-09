@@ -19,7 +19,7 @@ Scoped.require([
 				return ffprobe_simple.ffprobe_simple(file);
 			})).mapSuccess(function (infos) {
 				options = Objs.extend({
-					output_type: "video", // audio, image
+					output_type: "video", // video, audio, image
 					synchronize: true,
 					framerate: 25, // null
 					framerate_gop: 250,
@@ -32,7 +32,14 @@ Scoped.require([
 					audio_map: null, //0,1,2
 					video_profile: "baseline",
 					faststart: true,
-					video_format: "mp4"
+					video_format: "mp4",
+					
+					width: null,
+					height: null,
+					auto_rotate: true,
+					ratio_master: "target", // source, target
+					ratio_correction: "pad", // pad, crop
+					size_correction: "stretch" // pad, crop, stretch
 				}, options);
 				
 				var passes = 1;
@@ -77,26 +84,91 @@ Scoped.require([
 					args.push(helpers.paramsTimeDuration(options.time_start, options.time_end, options.time_limit));
 				
 				
-				/*
-				 * 
-				 * Which sizing should be used?
-				 * 
-				 */
 				if (options.output_type !== 'audio') {
-					// TODO: Rotation, Resize, Pad, Crop
+					var source = infos[0];
+					var sourceWidth = source.rotated_width;
+					var sourceHeight = source.rotated_height;
+					var sourceRatio = sourceWidth / sourceHeight;
+					var targetWidth = sourceWidth;
+					var targetHeight = sourceHeight;
+					var targetRatio = sourceRatio;
+					var ratioSourceTarget = 0;
 					
-					// '-vf' 'transpose=1' '-metadata:s:v:0' 'rotate=0'
-					// '-vf' 'transpose=1' '-metadata:s:v:0' 'rotate=0' '-s' '270x480'
-				}
+					/*
+					 * 
+					 * Which sizing should be used?
+					 * 
+					 */
+					
+					// Step 1: Fix Rotation
+					if (options.auto_rotate && source.rotation !== 0) {
+						if (source.rotation % 180 === 90) {
+							args.push("-vf");
+							args.push("transpose=" + (source.rotation === 90 ? 1 : 2));
+						}
+						if (source.rotation >= 180) {
+							args.push("-vf");
+							args.push("hflip,vflip");
+						}
+						args.push("-metadata:s:v:0");
+						args.push("rotate=0");
+					} 
+					if (options.width && options.height) {
+						
+						// Step 2: Fix Size
+						targetWidth = options.width;
+						targetHeight = options.height;
+						targetRatio = targetWidth / targetHeight;
+						ratioSourceTarget = Math.sign(sourceWidth * targetHeight - targetWidth * sourceHeight);
+						if (sourceWidth < targetWidth && sourceHeight < targetHeight && options.size_correction === "crop") {
+							targetWidth = ratioSourceTarget >= 0 ? sourceWidth : Math.round(sourceHeight * targetRatio);
+							targetHeight = ratioSourceTarget <= 0 ? sourceHeight : Math.round(sourceWidth / targetRatio);
+						}
+						
+						// Step 3: Fix Ratio
+						if (ratioSourceTarget !== 0 && options.ratio_master === "source") {
+							var factor = options.ratio_correction === "pad" ? 1 : -1;
+							targetWidth = ratioSourceTarget * factor < 0 ? targetWidth : Math.round(targetHeight * sourceRatio);
+							targetHeight = ratioSourceTarget * factor > 0 ? targetHeight : Math.round(targetWidth / sourceRatio);
+							targetRatio = sourceRatio;
+							ratioSourceTarget = 0;
+						}
+						
+						// Step 4: Modulus
+						var modulus = options.output_type === 'video' ? helpers.videoFormats[options.video_format].modulus || 1 : 1;
+						targetWidth = targetWidth % modulus === 0 ? targetWidth : (Math.round(targetWidth / modulus) * modulus);
+						targetHeight = targetHeight % modulus === 0 ? targetHeight : (Math.round(targetHeight / modulus) * modulus);
+						args.push("-s");
+						args.push(targetWidth + "x" + targetHeight);
+					
+						// Step 5: Crop / Pad
+						var croppad = 0;
+						if (ratioSourceTarget === 0 && options.size_correction === "pad" && targetWidth > sourceWidth && targetHeight > sourceHeight)
+							croppad = -1;
+						else if (ratioSourceTarget !== 0 && options.ratio_correction === "pad")
+							croppad = -1;
+						else if (ratioSourceTarget !== 0 && options.ratio_correction === "crop")
+							croppad = 1;
+						if (croppad) {
+							var croppadWidth = (croppad * ratioSourceTarget >= 0) ? sourceWidth : Math.round(sourceHeight * targetRatio);
+							var croppadHeight = (croppad * ratioSourceTarget <= 0) ? sourceHeight : Math.round(sourceWidth / targetRatio);
+							var croppadX = Math.round((sourceWidth - croppadWidth) / 2);
+							var croppadY = Math.round((sourceHeight - croppadHeight) / 2);
+							args.push("-vf");
+							args.push((croppad === -1 ? 'pad' : 'crop') + "=" + [croppadWidth, croppadHeight, croppad * croppadX, croppad * croppadY].join(":"));
+						}
+					}
+					
 				
 				
-				/*
-				 * 
-				 * Watermark (depends on sizing)
-				 * 
-				 */
-				if (options.output_type !== 'audio') {
+					/*
+					 * 
+					 * Watermark (depends on sizing)
+					 * 
+					 */
+					
 					// TODO: Watermark
+
 				}
 				
 				
@@ -128,6 +200,7 @@ Scoped.require([
 				 * Bit rate (depends on watermark + sizing)
 				 * 
 				 */
+				// TODO
 				// '-b:v' '211k'
 				// '-b:a' '64k'
 				
@@ -135,6 +208,8 @@ Scoped.require([
 				return ffmpeg_multi_pass.ffmpeg_multi_pass(files, args, passes, output, function (progress) {
 					if (eventCallback)
 						eventCallback.call(eventContext || this, helper.parseProgress(progress, duration));
+				}, this).mapSuccess(function () {
+					return ffprobe_simple.ffprobe_simple(output);
 				}, this);
 			});
 			

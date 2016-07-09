@@ -39,6 +39,8 @@ test("ffprobe-simple rotated mov", function() {
 				rotation : 90,
 				width : 568,
 				height : 320,
+				rotated_width : 320,
+				rotated_height : 568,
 				codec_name : 'avc1',
 				codec_long_name : 'H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10',
 				codec_profile : 'Baseline',

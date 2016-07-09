@@ -1,4 +1,4 @@
-# js-ffmpeg 0.0.1
+# js-ffmpeg 0.0.2
 
 This is a simple wrapper for FFMPEG and FFPROBE.
 
@@ -44,4 +44,14 @@ This is very much work in progress.
 	}).error(function (error) {
 		console.log(error);
 	});
-	
+```
+
+
+
+## TODO
+
+- Test Sizing
+- Add Watermarks
+- Test Watermarks
+- Add Bitrate
+- Test Bitrate

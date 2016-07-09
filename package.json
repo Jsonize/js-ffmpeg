@@ -1,7 +1,7 @@
 {
 	"name": "js-ffmpeg",
 	"description": "JS FFMpeg",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"author": "Ziggeo",
 	"repository": "https://github.com/jsonize/jsffmpeg",
 	"license": "Apache-2.0",
