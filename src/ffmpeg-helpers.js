@@ -20,7 +20,8 @@ Scoped.require([
 				vcodec: "libx264",
 				fmt: "mp4",
 				passes: 2,
-				modulus: 2
+				modulus: 2,
+				params: "-pix_fmt yuv420p"
 			},
 			"ogg": {
 				bframes: true,
