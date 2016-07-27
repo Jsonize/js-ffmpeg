@@ -1,4 +1,4 @@
-# js-ffmpeg 0.0.4
+# js-ffmpeg 0.0.5
 
 This is a simple wrapper for FFMPEG and FFPROBE.
 
@@ -60,3 +60,15 @@ This is a simple wrapper for FFMPEG and FFPROBE.
 		console.log(error);
 	});
 ```
+
+
+## Contributors
+
+- Ziggeo
+- Oliver Friedmann
+
+
+## License
+
+Apache-2.0
+
