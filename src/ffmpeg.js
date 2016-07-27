@@ -19,7 +19,8 @@ Scoped.require([
 			commands = commands.concat(options);
 			commands.push("-y");
 			commands.push(output);		
-			var file = require("child_process").spawn("ffmpeg", commands);
+//	console.log(commands.join(" "));
+			var file = require("child_process").spawn("ffmpeg", commands.join(" ").split(" "));
 			var lines = "";
 			file.stderr.on("data", function (data) {
 				var line = data.toString();

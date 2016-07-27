@@ -1,8 +1,6 @@
-# js-ffmpeg 0.0.2
+# js-ffmpeg 0.0.4
 
 This is a simple wrapper for FFMPEG and FFPROBE.
-
-This is very much work in progress.
 
 
 ## Getting Started
@@ -36,7 +34,7 @@ This is very much work in progress.
 		console.log(error);
 	});
 	
-	// raw call of ffprobe (source(s), arguments, target, progress callback)
+	// raw call of ffmpeg (source(s), arguments, target, progress callback)
 	ffmpeg.ffmpeg('video.mp4', [...], 'output.mp4', function (progress) {
 		console.log(progress);
 	}).success(function (json) {
@@ -44,14 +42,21 @@ This is very much work in progress.
 	}).error(function (error) {
 		console.log(error);
 	});
+	
+	// improved and simplified call of ffmpeg (source(s), arguments, target, progress callback)
+	ffmpeg.ffmpeg('video.mp4', {
+		width: 640,
+		height: 360,
+		auto_rotate: true,
+		ratio_strategy: "fixed",
+		shrink_strategy: "crop",
+		mixed_strategy: "crop-pad",
+		stretch_strategy: "pad"
+	}, 'output.mp4', function (progress) {
+		console.log(progress);
+	}).success(function (json) {
+		console.log(json);
+	}).error(function (error) {
+		console.log(error);
+	});
 ```
-
-
-
-## TODO
-
-- Test Sizing
-- Add Watermarks
-- Test Watermarks
-- Add Bitrate
-- Test Bitrate

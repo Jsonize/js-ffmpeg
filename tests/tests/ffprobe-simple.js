@@ -5,7 +5,7 @@ var ROTATED_MOV_VIDEO = "tests/assets/iphone_rotated.mov";
 
 test("ffprobe-simple not existing", function() {
 	stop();
-	ffmpeg.ffprobe_simple(NOT_EXISTING_VIDEO).callback(function (error, value) {
+	ffmpeg.ffprobe_simple(NOT_EXISTING_VIDEO).callback(function(error, value) {
 		QUnit.equal(error, 'File does not exist');
 		start();
 	});
@@ -13,7 +13,7 @@ test("ffprobe-simple not existing", function() {
 
 test("ffprobe-simple rotated mov", function() {
 	stop();
-	ffmpeg.ffprobe_simple(ROTATED_MOV_VIDEO).callback(function (error, value) {
+	ffmpeg.ffprobe_simple(ROTATED_MOV_VIDEO).callback(function(error, value) {
 		QUnit.deepEqual(value, {
 			filename : ROTATED_MOV_VIDEO,
 			stream_count : 2,
@@ -22,8 +22,7 @@ test("ffprobe-simple rotated mov", function() {
 			start_time : 0,
 			duration : 2.201667,
 			format_name : 'QuickTime / MOV',
-			format_extensions : [ 'mov', 'mp4',
-					'm4a', '3gp', '3g2', 'mj2' ],
+			format_extensions : [ 'mov', 'mp4', 'm4a', '3gp', '3g2', 'mj2' ],
 			format_default_extension : 'mov',
 			audio : {
 				index : 0,
