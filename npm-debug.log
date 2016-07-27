@@ -1,0 +1,106 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/usr/local/bin/node', '/usr/local/bin/npm', 'publish' ]
+2 info using npm@3.6.0
+3 info using node@v5.2.0
+4 verbose publish [ '.' ]
+5 silly cache add args [ '.', null ]
+6 verbose cache add spec .
+7 silly cache add parsed spec Result {
+7 silly cache add   raw: '.',
+7 silly cache add   scope: null,
+7 silly cache add   name: null,
+7 silly cache add   rawSpec: '.',
+7 silly cache add   spec: '/Users/oliverfriedmann/Projects/Jsonize/jsffmpeg',
+7 silly cache add   type: 'directory' }
+8 verbose addLocalDirectory /Users/oliverfriedmann/.npm/js-ffmpeg/0.0.5/package.tgz not in flight; packing
+9 verbose correctMkdir /Users/oliverfriedmann/.npm correctMkdir not in flight; initializing
+10 info lifecycle js-ffmpeg@0.0.5~prepublish: js-ffmpeg@0.0.5
+11 silly lifecycle js-ffmpeg@0.0.5~prepublish: no script for prepublish, continuing
+12 verbose tar pack [ '/Users/oliverfriedmann/.npm/js-ffmpeg/0.0.5/package.tgz',
+12 verbose tar pack   '/Users/oliverfriedmann/Projects/Jsonize/jsffmpeg' ]
+13 verbose tarball /Users/oliverfriedmann/.npm/js-ffmpeg/0.0.5/package.tgz
+14 verbose folder /Users/oliverfriedmann/Projects/Jsonize/jsffmpeg
+15 verbose addLocalTarball adding from inside cache /Users/oliverfriedmann/.npm/js-ffmpeg/0.0.5/package.tgz
+16 verbose correctMkdir /Users/oliverfriedmann/.npm correctMkdir not in flight; initializing
+17 silly cache afterAdd js-ffmpeg@0.0.5
+18 verbose afterAdd /Users/oliverfriedmann/.npm/js-ffmpeg/0.0.5/package/package.json not in flight; writing
+19 verbose correctMkdir /Users/oliverfriedmann/.npm correctMkdir not in flight; initializing
+20 verbose afterAdd /Users/oliverfriedmann/.npm/js-ffmpeg/0.0.5/package/package.json written
+21 silly publish { name: 'js-ffmpeg',
+21 silly publish   description: 'JS FFMpeg',
+21 silly publish   version: '0.0.5',
+21 silly publish   author: { name: 'Ziggeo' },
+21 silly publish   repository:
+21 silly publish    { type: 'git',
+21 silly publish      url: 'git+https://github.com/jsonize/jsffmpeg.git' },
+21 silly publish   license: 'Apache-2.0',
+21 silly publish   engines: { node: '' },
+21 silly publish   devDependencies:
+21 silly publish    { grunt: '',
+21 silly publish      'grunt-node-qunit': '',
+21 silly publish      qunit: '',
+21 silly publish      'grunt-contrib-jshint': '' },
+21 silly publish   dependencies:
+21 silly publish    { tmp: '',
+21 silly publish      'betajs-scoped': 'git://github.com/betajs/betajs-scoped.git',
+21 silly publish      betajs: 'git://github.com/betajs/betajs.git' },
+21 silly publish   readme: '# js-ffmpeg 0.0.5\n\nThis is a simple wrapper for FFMPEG and FFPROBE.\n\n\n## Getting Started\n\n\n```javascript\n\tgit clone https://github.com/jsonize/js-ffmpeg.git\n\tnpm install\n\tgrunt\n```\n\n\n\n## Basic Usage\n\n\n```javascript\n\tffmpeg = require(\'js-ffmpeg\');\n\t\n\t// raw call of ffprobe\n\tffmpeg.ffprobe(\'video.mp4\').success(function (json) {\n\t\tconsole.log(json);\n\t}).error(function (error) {\n\t\tconsole.log(error);\n\t});\n\t\n\t// improved and simplified values and errors\n\tffmpeg.ffprobe_simple(\'video.mp4\').success(function (json) {\n\t\tconsole.log(json);\n\t}).error(function (error) {\n\t\tconsole.log(error);\n\t});\n\t\n\t// raw call of ffmpeg (source(s), arguments, target, progress callback)\n\tffmpeg.ffmpeg(\'video.mp4\', [...], \'output.mp4\', function (progress) {\n\t\tconsole.log(progress);\n\t}).success(function (json) {\n\t\tconsole.log(json);\n\t}).error(function (error) {\n\t\tconsole.log(error);\n\t});\n\t\n\t// improved and simplified call of ffmpeg (source(s), arguments, target, progress callback)\n\tffmpeg.ffmpeg(\'video.mp4\', {\n\t\twidth: 640,\n\t\theight: 360,\n\t\tauto_rotate: true,\n\t\tratio_strategy: "fixed",\n\t\tshrink_strategy: "crop",\n\t\tmixed_strategy: "crop-pad",\n\t\tstretch_strategy: "pad"\n\t}, \'output.mp4\', function (progress) {\n\t\tconsole.log(progress);\n\t}).success(function (json) {\n\t\tconsole.log(json);\n\t}).error(function (error) {\n\t\tconsole.log(error);\n\t});\n```\n\n\n## Contributors\n\n- Ziggeo\n- Oliver Friedmann\n\n\n## License\n\nApache-2.0\n\n',
+21 silly publish   readmeFilename: 'README.md',
+21 silly publish   gitHead: '585c42165d5d0fac0dbd938478e7c2c78a5b1262',
+21 silly publish   bugs: { url: 'https://github.com/jsonize/jsffmpeg/issues' },
+21 silly publish   homepage: 'https://github.com/jsonize/jsffmpeg#readme',
+21 silly publish   _id: 'js-ffmpeg@0.0.5',
+21 silly publish   scripts: {},
+21 silly publish   _shasum: 'e831daa48d9ffbb83c993836be9fda9580f2c5c3',
+21 silly publish   _from: '.' }
+22 verbose getPublishConfig undefined
+23 silly mapToRegistry name js-ffmpeg
+24 silly mapToRegistry using default registry
+25 silly mapToRegistry registry http://registry.npmjs.org/
+26 silly mapToRegistry uri http://registry.npmjs.org/js-ffmpeg
+27 verbose publish registryBase http://registry.npmjs.org/
+28 silly publish uploading /Users/oliverfriedmann/.npm/js-ffmpeg/0.0.5/package.tgz
+29 verbose request uri http://registry.npmjs.org/js-ffmpeg
+30 verbose request sending authorization for write operation
+31 info attempt registry request try #1 at 5:22:21 PM
+32 verbose request using bearer token for auth
+33 verbose request id caa27d85a3e3c168
+34 http request PUT http://registry.npmjs.org/js-ffmpeg
+35 http 403 http://registry.npmjs.org/js-ffmpeg
+36 verbose headers { 'content-type': 'application/json',
+36 verbose headers   'cache-control': 'max-age=300',
+36 verbose headers   'content-length': '95',
+36 verbose headers   'accept-ranges': 'bytes',
+36 verbose headers   date: 'Wed, 27 Jul 2016 21:22:23 GMT',
+36 verbose headers   via: '1.1 varnish',
+36 verbose headers   connection: 'keep-alive',
+36 verbose headers   'x-served-by': 'cache-jfk1033-JFK',
+36 verbose headers   'x-cache': 'MISS',
+36 verbose headers   'x-cache-hits': '0',
+36 verbose headers   'x-timer': 'S1469654541.555504,VS0,VE1488',
+36 verbose headers   vary: 'Accept-Encoding' }
+37 verbose request invalidating /Users/oliverfriedmann/.npm/registry.npmjs.org/js-ffmpeg on PUT
+38 error publish Failed PUT 403
+39 verbose stack Error: "You cannot publish over the previously published version 0.0.5." : js-ffmpeg
+39 verbose stack     at makeError (/usr/local/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:264:12)
+39 verbose stack     at CachingRegistryClient.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:252:14)
+39 verbose stack     at Request._callback (/usr/local/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:172:14)
+39 verbose stack     at Request.self.callback (/usr/local/lib/node_modules/npm/node_modules/request/request.js:198:22)
+39 verbose stack     at emitTwo (events.js:88:13)
+39 verbose stack     at Request.emit (events.js:173:7)
+39 verbose stack     at Request.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/request/request.js:1035:10)
+39 verbose stack     at emitOne (events.js:83:20)
+39 verbose stack     at Request.emit (events.js:170:7)
+39 verbose stack     at IncomingMessage.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/request/request.js:962:12)
+40 verbose statusCode 403
+41 verbose pkgid js-ffmpeg
+42 verbose cwd /Users/oliverfriedmann/Projects/Jsonize/jsffmpeg
+43 error Darwin 15.6.0
+44 error argv "/usr/local/bin/node" "/usr/local/bin/npm" "publish"
+45 error node v5.2.0
+46 error npm  v3.6.0
+47 error code E403
+48 error "You cannot publish over the previously published version 0.0.5." : js-ffmpeg
+49 error If you need help, you may report this error at:
+49 error     <https://github.com/npm/npm/issues>
+50 verbose exit [ 1, true ]
