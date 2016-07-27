@@ -333,7 +333,7 @@ Scoped.require([
 //console.log(files, args, passes, output);
 				return ffmpeg_multi_pass.ffmpeg_multi_pass(files, args, passes, output, function (progress) {
 					if (eventCallback)
-						eventCallback.call(eventContext || this, helper.parseProgress(progress, duration));
+						eventCallback.call(eventContext || this, helpers.parseProgress(progress, duration));
 				}, this).mapSuccess(function () {
 					return ffprobe_simple.ffprobe_simple(output);
 				}, this);
