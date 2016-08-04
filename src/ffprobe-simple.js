@@ -6,9 +6,15 @@ Scoped.require([
 	module.exports = {
 			
 		ffprobe_simple: function (file) {
+			var parseIntUndefined = function (source, key) {
+				return key in source ? parseInt(source[key], 10) : undefined;
+			};
+			
 			if (!require('fs').existsSync(file))
 				return Promise.error("File does not exist");
 			return require(__dirname + "/ffprobe.js").ffprobe(file).mapSuccess(function (json) {
+				if (!json.format || !json.streams)
+					return Promise.error("Cannot read file");
 				var result = {
 					filename: json.format.filename,
 					stream_count: json.format.nb_streams,
@@ -33,7 +39,8 @@ Scoped.require([
 							codec_name: stream.codec_tag_string,
 							codec_long_name: stream.codec_long_name,
 							codec_profile: stream.profile,
-							bit_rate: parseInt(stream.bit_rate, 10)
+							bit_rate: parseIntUndefined(stream, "bit_rate"),
+							frames: parseIntUndefined(stream, "nb_frames")
 						};
 					} else if (stream.codec_type === 'audio') {
 						result.audio = {
@@ -42,8 +49,8 @@ Scoped.require([
 							codec_long_name: stream.codec_long_name,
 							codec_profile: stream.profile,
 							audio_channels: stream.channels,
-							sample_rate: parseInt(stream.sample_rate, 10),
-							bit_rate: parseInt(stream.bit_rate, 10)
+							sample_rate: parseIntUndefined(stream, "sample_rate"),
+							bit_rate: parseIntUndefined(stream, "bit_rate")
 						};
 					}
 				});

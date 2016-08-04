@@ -46,7 +46,10 @@ Scoped.require([
 					promise.asyncSuccess();
 				} else {
 					var errlines = lines.split("\n");
-					promise.asyncError(errlines[errlines.length - 2]);
+					promise.asyncError({
+						message: errlines[errlines.length - 2],
+						command: commands.join(" ")
+					});
 				}
 			});
 			return promise;

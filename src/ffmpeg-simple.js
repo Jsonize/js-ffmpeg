@@ -38,8 +38,10 @@ Scoped.require([
 				width: null,
 				height: null,
 				auto_rotate: true,
+				rotate: null,
 				
 				ratio_strategy: "fixed", // "shrink", "stretch"
+				size_strategy: "keep", // "shrink", "stretch"
 				shrink_strategy: "shrink-pad", // "crop", "shrink-crop"
 				stretch_strategy: "pad", // "stretch-pad", "stretch-crop"
 				mixed_strategy: "shrink-pad", // "stretch-crop", "crop-pad"
@@ -92,10 +94,10 @@ Scoped.require([
 				if (options.output_type === 'audio') {
 					args.push(helpers.paramsAudioOnly);
 				} else if (options.output_type === 'video') {
-					if (options.video_map !== null)
-						args.push(helpers.paramsVideoMap(options.video_map));
-					if (options.audio_map !== null)
-						args.push(helpers.paramsAudioMap(options.audio_map));
+					if (infos.length > 1)
+						args.push(helpers.paramsVideoMap(options.video_map || 0));
+					if (infos.length > 1)
+						args.push(helpers.paramsAudioMap(options.audio_map || 0));
 				}
 				
 				/*
@@ -133,6 +135,15 @@ Scoped.require([
 				
 				if (options.output_type !== 'audio') {
 					var source = infos[0];
+					if (options.rotate) {
+						options.auto_rotate = true;
+						source.video.rotation = (source.video.rotation + options.rotate) % 360;
+						if (options.rotate % 180 === 90) {
+							var temp = source.video.rotated_width;
+							source.video.rotated_width = source.video.rotated_height;
+							source.video.rotated_height = temp;
+						}
+					}
 					sourceWidth = source.video.rotated_width;
 					sourceHeight = source.video.rotated_height;
 					var sourceRatio = sourceWidth / sourceHeight;
@@ -175,6 +186,14 @@ Scoped.require([
 								targetHeight = targetWidth / sourceRatio;
 							targetRatio = sourceRatio;
 							ratioSourceTarget = 0;
+						}
+						
+						if (options.size_strategy === "shrink" && targetWidth > sourceWidth && targetHeight > sourceHeight) {
+							targetWidth = ratioSourceTarget < 0 ? sourceHeight * targetRatio : sourceWidth;
+							targetHeight = ratioSourceTarget >= 0 ? targetWidth / targetRatio : sourceHeight;
+						} else if (options.size_strategy === "stretch" && targetWidth < sourceWidth && targetHeight < sourceHeight) {
+							targetWidth = ratioSourceTarget >= 0 ? sourceHeight * targetRatio : sourceWidth;
+							targetHeight = ratioSourceTarget < 0 ? targetWidth / targetRatio : sourceHeight;
 						}
 						
 						var vf = [];
@@ -275,8 +294,8 @@ Scoped.require([
 						var maxHeight = targetHeight * options.watermark_size;
 						if (scaleWidth > maxWidth || scaleHeight > maxHeight) {
 							var watermarkRatio = maxWidth * scaleHeight >= maxHeight * scaleWidth;
-							scaleWidth = watermarkRatio ? scaleWidth * maxHeight / scaleHeight : maxWidth;
-							scaleHeight = !watermarkRatio ? scaleHeight * maxWidth / scaleWidth : maxHeight;
+							scaleWidth = watermarkRatio ? watermarkInfo.video.width * maxHeight / watermarkInfo.video.height : maxWidth;
+							scaleHeight = !watermarkRatio ? watermarkInfo.video.height * maxWidth / watermarkInfo.video.width : maxHeight;
 						}
 						var posX = options.watermark_x * (targetWidth - scaleWidth);
 						var posY = options.watermark_y * (targetHeight - scaleHeight);
@@ -319,11 +338,15 @@ Scoped.require([
 				 */
 				if (options.output_type === "video") {
 					args.push("-b:v");
-					var video_bit_rate = options.video_bit_rate || Math.min(videoInfo.bit_rate * targetWidth * targetHeight / sourceWidth / sourceHeight, videoInfo.bit_rate);
+					var video_bit_rate = options.video_bit_rate;
+					if (!video_bit_rate && videoInfo.bit_rate)
+						video_bit_rate = Math.min(videoInfo.bit_rate * targetWidth * targetHeight / sourceWidth / sourceHeight, videoInfo.bit_rate);
+					if (!video_bit_rate)
+						video_bit_rate = Math.round(1000 * (targetWidth + targetHeight) / 2);
 					args.push(Math.round(video_bit_rate / 1000) + "k");
 					if (audioInfo) {
 						args.push("-b:a");
-						var audio_bit_rate = options.audio_bit_rate || audioInfo.bit_rate;
+						var audio_bit_rate = options.audio_bit_rate || Math.max(audioInfo.bit_rate || 64000, 64000);
 						args.push(Math.round(audio_bit_rate / 1000) + "k");
 					}
 				}

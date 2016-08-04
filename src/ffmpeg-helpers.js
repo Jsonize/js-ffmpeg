@@ -54,9 +54,9 @@ Scoped.require([
 		
 		paramsFormatImage: "-f image2",
 			
-		paramsVideoMap: function (index) { return "-map " + index + ":0"; },
+		paramsVideoMap: function (index) { return "-map " + "0:" + index; },
 		
-		paramsAudioMap: function (index) { return "-map " + index + ":1"; },
+		paramsAudioMap: function (index) { return "-map " + "1:" + index; },
 		
 		paramsVideoCodecUniversalConfig: "-refs 6 -coder 1 -sc_threshold 40 -flags +loop -me_range 16 -subq 7 -i_qfactor 0.71 -qcomp 0.6 -qdiff 4 -trellis 1",
 		

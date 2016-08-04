@@ -2,11 +2,20 @@ var ffmpeg = require(__dirname + "/../../index.js");
 
 var NOT_EXISTING_VIDEO = "./notexisting.mp4";
 var ROTATED_MOV_VIDEO = "tests/assets/iphone_rotated.mov";
+var NO_VIDEO = "tests/assets/novideo.mp4";
 
 test("ffprobe-simple not existing", function() {
 	stop();
 	ffmpeg.ffprobe_simple(NOT_EXISTING_VIDEO).callback(function(error, value) {
 		QUnit.equal(error, 'File does not exist');
+		start();
+	});
+});
+
+test("ffprobe-simple no video", function() {
+	stop();
+	ffmpeg.ffprobe_simple(NO_VIDEO).callback(function(error, value) {
+		QUnit.equal(error, 'Cannot read file');
 		start();
 	});
 });
@@ -43,7 +52,8 @@ test("ffprobe-simple rotated mov", function() {
 				codec_name : 'avc1',
 				codec_long_name : 'H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10',
 				codec_profile : 'Baseline',
-				bit_rate : 507677
+				bit_rate : 507677,
+				frames: 66
 			}
 		});
 		start();
