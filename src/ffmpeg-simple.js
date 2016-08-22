@@ -159,14 +159,14 @@ Scoped.require([
 					 */
 
 					// Step 1: Fix Rotation
+					var vfilters = [];
+					
 					if (options.auto_rotate && source.video.rotation) {
 						if (source.video.rotation % 180 === 90) {
-							args.push("-vf");
-							args.push("transpose=" + (source.video.rotation === 90 ? 1 : 2));
+							vfilters.push("transpose=" + (source.video.rotation === 90 ? 1 : 2));
 						}
-						if (source.video.otation >= 180) {
-							args.push("-vf");
-							args.push("hflip,vflip");
+						if (source.video.rotation >= 180) {
+							vfilters.push("hflip,vflip");
 						}
 						args.push("-metadata:s:v:0");
 						args.push("rotate=0");
@@ -212,9 +212,8 @@ Scoped.require([
 							cropped = true;
 							var cropWidth = targetWidth - 2 * x;
 							var cropHeight = targetHeight - 2 * y;
-							args.push("-vf");
-							args.push("scale=" + [multi || ratioSourceTarget >= 0 ? cropWidth : targetWidth, !multi && ratioSourceTarget >= 0 ? targetHeight : cropHeight].join(":") + "," +
-									  "crop=" + [!multi && ratioSourceTarget <= 0 ? cropWidth : targetWidth, multi || ratioSourceTarget <= 0 ? targetHeight : cropHeight, -x, -y].join(":"));
+							vfilters.push("scale=" + [multi || ratioSourceTarget >= 0 ? cropWidth : targetWidth, !multi && ratioSourceTarget >= 0 ? targetHeight : cropHeight].join(":"));
+							vfilters.push("crop=" + [!multi && ratioSourceTarget <= 0 ? cropWidth : targetWidth, multi || ratioSourceTarget <= 0 ? targetHeight : cropHeight, -x, -y].join(":"));
 						};
 						var padded = false;
 						var addPad = function (x, y, multi) {
@@ -225,9 +224,8 @@ Scoped.require([
 							padded = true;
 							var padWidth = targetWidth - 2 * x;
 							var padHeight = targetHeight - 2 * y;
-							args.push("-vf");
-							args.push("scale=" + [multi || ratioSourceTarget <= 0 ? padWidth : targetWidth, !multi && ratioSourceTarget <= 0 ? targetHeight : padHeight].join(":") + "," +
-									  "pad=" + [!multi && ratioSourceTarget >= 0 ? padWidth : targetWidth, multi || ratioSourceTarget >= 0 ? targetHeight : padHeight, x, y].join(":"));
+							vfilters.push("scale=" + [multi || ratioSourceTarget <= 0 ? padWidth : targetWidth, !multi && ratioSourceTarget <= 0 ? targetHeight : padHeight].join(":"));
+							vfilters.push("pad=" + [!multi && ratioSourceTarget >= 0 ? padWidth : targetWidth, multi || ratioSourceTarget >= 0 ? targetHeight : padHeight, x, y].join(":"));
 						};
 						
 						// Step 4: Crop & Pad
@@ -267,18 +265,26 @@ Scoped.require([
 								var direction = ratioSourceTarget >= 0;
 								var dirX = Math.abs(Math.round((sourceWidth - targetWidth) / 2));
 								var dirY = Math.abs(Math.round((sourceHeight - targetHeight) / 2));
-								args.push("-vf");
-								args.push("crop=" + [direction ? targetWidth : sourceWidth, direction ? sourceHeight : targetHeight, direction ? dirX : 0, direction ? 0 : dirY].join(":") + "," +
-										  "pad=" + [targetWidth, targetHeight, direction ? 0 : dirX, direction ? dirY : 0].join(":"));
+								vfilters.push("crop=" + [direction ? targetWidth : sourceWidth, direction ? sourceHeight : targetHeight, direction ? dirX : 0, direction ? 0 : dirY].join(":"));
+								vfilters.push("pad=" + [targetWidth, targetHeight, direction ? 0 : dirX, direction ? dirY : 0].join(":"));
 							}
+						}
+						
+						if (vfilters.length > 0) {
+							args.push("-vf");
+							args.push(vfilters.join(","));
 						}
 						
 						if (!padded && !cropped) {
 							args.push("-s");
 							args.push(targetWidth + "x" + targetHeight);
 						}
-					}
-
+					} else {
+						if (vfilters.length > 0) {
+							args.push("-vf");
+							args.push(vfilters.join(","));
+						}
+					}					
 				
 				
 					/*
