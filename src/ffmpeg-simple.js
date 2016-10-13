@@ -35,6 +35,7 @@ Scoped.require([
 				video_bit_rate: null,
 				
 				normalize_audio: false,
+				remove_audio: false,
 				width: null,
 				height: null,
 				auto_rotate: true,
@@ -81,9 +82,12 @@ Scoped.require([
 				 * Synchronize Audio & Video 
 				 * 
 				 */
-				if (options.output_type === 'video')
-					if (options.synchronize)
+				if (options.output_type === 'video') {
+					if (options.remove_audio)
+						args.push("-an");
+					else if (options.synchronize)
 						args.push(helpers.paramsSynchronize);
+				}
 				
 				
 				/*
