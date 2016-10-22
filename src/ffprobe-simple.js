@@ -29,7 +29,7 @@ Scoped.require([
 				json.streams.forEach(function (stream) {
 					if (stream.codec_type === 'video') {
 						var rotation = stream.tags && stream.tags.rotate ? parseInt(stream.tags.rotate, 10) : 0; 
-						result.video = {
+						var video = {
 							index: stream.index,
 							rotation: rotation,
 							width: stream.width,
@@ -42,6 +42,10 @@ Scoped.require([
 							bit_rate: parseIntUndefined(stream, "bit_rate"),
 							frames: parseIntUndefined(stream, "nb_frames")
 						};
+						if (json.format.format_name === "image" || json.format.format_name === "image2")
+							result.image = video;
+						else
+							result.video = video;
 					} else if (stream.codec_type === 'audio') {
 						result.audio = {
 							index: stream.index,
