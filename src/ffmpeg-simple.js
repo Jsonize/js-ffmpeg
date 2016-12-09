@@ -164,12 +164,13 @@ Scoped.require([
 
 					// Step 1: Fix Rotation
 					var vfilters = [];
+					var sizing = "";
 					
 					if (options.auto_rotate && source.video.rotation) {
 						if (source.video.rotation % 180 === 90) {
 							vfilters.push("transpose=" + (source.video.rotation === 90 ? 1 : 2));
 						}
-						if (source.video.rotation >= 180) {
+						if (source.video.rotation === 180) {
 							vfilters.push("hflip,vflip");
 						}
 						args.push("-metadata:s:v:0");
@@ -274,22 +275,12 @@ Scoped.require([
 							}
 						}
 						
-						if (vfilters.length > 0) {
-							args.push("-vf");
-							args.push(vfilters.join(","));
-						}
-						
-						if (!padded && !cropped) {
-							args.push("-s");
-							args.push(targetWidth + "x" + targetHeight);
-						}
-					} else {
-						if (vfilters.length > 0) {
-							args.push("-vf");
-							args.push(vfilters.join(","));
-						}
-					}					
-				
+						if (!padded && !cropped)
+							sizing = targetWidth + "x" + targetHeight;
+
+					}			
+					
+					vfilters = vfilters.join(",");
 				
 					/*
 					 * 
@@ -309,12 +300,24 @@ Scoped.require([
 						}
 						var posX = options.watermark_x * (targetWidth - scaleWidth);
 						var posY = options.watermark_y * (targetHeight - scaleHeight);
-						args.push("-vf");
-						args.push("movie=" + watermarkInfo.filename + "," +
-								  "scale=" + [Math.round(scaleWidth), Math.round(scaleHeight)].join(":") + "[wm];[in][wm]" +
-								  "overlay=" + [Math.round(posX), Math.round(posY)].join(":") + "[out]");
+						var v = vfilters ? vfilters + "[next];[next]": "";
+						vfilters = "movie=" + watermarkInfo.filename + "," +
+								   "scale=" + [Math.round(scaleWidth), Math.round(scaleHeight)].join(":") + "[wm];[in]" + v + "[wm]" +
+								   "overlay=" + [Math.round(posX), Math.round(posY)].join(":") + "[out]";
 					}
 
+					
+					// Video Filters
+					if (vfilters) {
+						args.push("-vf");
+						args.push(vfilters);
+					}
+					if (sizing) {
+						args.push("-s");
+						args.push(sizing);
+					}
+				
+					
 				}
 				
 				
