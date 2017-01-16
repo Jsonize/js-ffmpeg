@@ -1,5 +1,5 @@
-Scoped = global.Scoped || require("betajs-scoped/dist/scoped.js");
-BetaJS = global.BetaJS || require('betajs/dist/beta-noscoped.js');
+Scoped = global.Scoped || require("betajs-scoped");
+BetaJS = global.BetaJS || require('betajs');
 Scoped.binding("betajs", "global:BetaJS");
 
 
