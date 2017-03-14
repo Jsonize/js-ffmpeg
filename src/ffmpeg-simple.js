@@ -58,7 +58,7 @@ Scoped.require([
 			});
 			
 			if (options.normalize_audio)
-				promises.push(ffmpeg_volume_detect.ffmpeg_volume_detect(files[options.audio_map || 0]));
+				promises.push(ffmpeg_volume_detect.ffmpeg_volume_detect(files[options.audio_map || files.length - 1]));
 			if (options.watermark)
 				promises.push(ffprobe_simple.ffprobe_simple(options.watermark));
 			
@@ -98,10 +98,14 @@ Scoped.require([
 				if (options.output_type === 'audio') {
 					args.push(helpers.paramsAudioOnly);
 				} else if (options.output_type === 'video') {
-					if (infos.length > 1)
-						args.push(helpers.paramsVideoMap(options.video_map || 0));
-					if (infos.length > 1)
-						args.push(helpers.paramsAudioMap(options.audio_map || 0));
+					if (infos.length > 1) {
+						var videoIdx = options.video_map || 0;
+						args.push("-map " + videoIdx + ":" + infos[videoIdx].video.index);
+                    }
+					if (infos.length > 1) {
+						var audioIdx = options.audio_map || 1;
+						args.push("-map " + audioIdx + ":" + infos[audioIdx].audio.index);
+                    }
 				}
 				
 				/*
