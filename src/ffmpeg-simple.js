@@ -357,7 +357,7 @@ Scoped.require([
 					args.push("-b:v");
 					var video_bit_rate = options.video_bit_rate;
 					if (!video_bit_rate && videoInfo.bit_rate)
-						video_bit_rate = Math.min(videoInfo.bit_rate * targetWidth * targetHeight / sourceWidth / sourceHeight, videoInfo.bit_rate);
+						video_bit_rate = videoInfo.bit_rate * Math.min(Math.max(targetWidth * targetHeight / sourceWidth / sourceHeight, 0.25), 4);
 					if (!video_bit_rate)
 						video_bit_rate = Math.round(1000 * (targetWidth + targetHeight) / 2);
 					args.push(Math.round(video_bit_rate / 1000) + "k");
