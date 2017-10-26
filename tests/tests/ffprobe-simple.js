@@ -1,43 +1,50 @@
 var ffmpeg = require(__dirname + "/../../index.js");
+var settings = require(__dirname + "/settings.js");
 
-var NOT_EXISTING_VIDEO = "./notexisting.mp4";
-var ROTATED_MOV_VIDEO = "tests/assets/iphone_rotated.mov";
-var NO_VIDEO = "tests/assets/novideo.mp4";
+var NOT_EXISTING_VIDEO = __dirname + "/notexisting.mp4";
+var ROTATED_MOV_VIDEO = __dirname + "/../assets/iphone_rotated.mov";
+var NO_VIDEO = __dirname + "/../assets/novideo.mp4";
 
-test("ffprobe-simple not existing", function() {
-	stop();
-	ffmpeg.ffprobe_simple(NOT_EXISTING_VIDEO).callback(function(error, value) {
-		QUnit.equal(error, 'File does not exist');
-		start();
+QUnit.test("ffprobe-simple not existing", function(assert) {
+	var done = assert.async();
+	ffmpeg.ffprobe_simple(NOT_EXISTING_VIDEO, settings).callback(function(error, value) {
+		assert.equal(error, 'File does not exist');
+		done();
 	});
 });
 
-test("ffprobe-simple no video", function() {
-	stop();
-	ffmpeg.ffprobe_simple(NO_VIDEO).callback(function(error, value) {
-		QUnit.equal(error, 'Cannot read file');
-		start();
+QUnit.test("ffprobe-simple no video", function(assert) {
+	var done = assert.async();
+	ffmpeg.ffprobe_simple(NO_VIDEO, settings).callback(function(error, value) {
+		assert.equal(error, 'Cannot read file');
+		done();
 	});
 });
 
-test("ffprobe-simple rotated mov", function() {
-	stop();
-	ffmpeg.ffprobe_simple(ROTATED_MOV_VIDEO).callback(function(error, value) {
-		QUnit.deepEqual(value, {
-			filename : ROTATED_MOV_VIDEO,
+QUnit.test("ffprobe-simple rotated mov", function(assert) {
+	var done = assert.async();
+	ffmpeg.ffprobe_simple(ROTATED_MOV_VIDEO, settings).callback(function(error, value) {
+		delete value.filename;
+		delete value.format_name;
+		delete value.audio.codec_long_name;
+        delete value.audio.codec_profile;
+        delete value.video.codec_long_name;
+        delete value.video.codec_profile;
+		assert.deepEqual(value, {
+			//filename : ROTATED_MOV_VIDEO,
 			stream_count : 2,
 			size : 159993,
 			bit_rate : 581352,
 			start_time : 0,
 			duration : 2.201667,
-			format_name : 'QuickTime / MOV',
+			//format_name : 'QuickTime / MOV',
 			format_extensions : [ 'mov', 'mp4', 'm4a', '3gp', '3g2', 'mj2' ],
 			format_default_extension : 'mov',
 			audio : {
 				index : 0,
 				codec_name : 'aac',
-				codec_long_name : 'AAC (Advanced Audio Coding)',
-				codec_profile : 'LC',
+				//codec_long_name : 'AAC (Advanced Audio Coding)',
+				//codec_profile : 'LC',
 				audio_channels : 1,
 				sample_rate : 44100,
 				bit_rate : 61893
@@ -50,12 +57,12 @@ test("ffprobe-simple rotated mov", function() {
 				rotated_width : 320,
 				rotated_height : 568,
 				codec_name : 'avc1',
-				codec_long_name : 'H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10',
-				codec_profile : 'Baseline',
+				//codec_long_name : 'H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10',
+				//codec_profile : 'Baseline',
 				bit_rate : 507677,
 				frames: 66
 			}
 		});
-		start();
+		done();
 	});
 });

@@ -5,14 +5,16 @@ Scoped.require([
 ], function (Promise, Types, Objs) {
 	
 	var ffmpeg_multi_pass = require(__dirname + "/ffmpeg-multi-pass.js");
-	var ffprobe_simple = require(__dirname + "/ffprobe-simple.js");
-	var ffmpeg_volume_detect = require(__dirname + "/ffmpeg-volume-detect.js");
-	var helpers = require(__dirname + "/ffmpeg-helpers.js");
+    var ffprobe_simple = require(__dirname + "/ffprobe-simple.js");
+    var ffmpeg_volume_detect = require(__dirname + "/ffmpeg-volume-detect.js");
+    var helpers = require(__dirname + "/ffmpeg-helpers.js");
+    var ffmpeg_test = require(__dirname + "/ffmpeg-test.js");
 	
 	
 	module.exports = {
 			 
-		ffmpeg_simple: function (files, options, output, eventCallback, eventContext) {
+		ffmpeg_simple: function (files, options, output, eventCallback, eventContext, opts) {
+			opts = opts || {};
 			if (Types.is_string(files))
 				files = [files];
 			options = Objs.extend({
@@ -52,17 +54,23 @@ Scoped.require([
 				watermark_x: 0.95,
 				watermark_y: 0.95
 			}, options);
-			
+
 			var promises = files.map(function (file) {
-				return ffprobe_simple.ffprobe_simple(file);
+				return ffprobe_simple.ffprobe_simple(file, opts);
 			});
 			
 			if (options.normalize_audio)
-				promises.push(ffmpeg_volume_detect.ffmpeg_volume_detect(files[options.audio_map || files.length - 1]));
+				promises.push(ffmpeg_volume_detect.ffmpeg_volume_detect(files[options.audio_map || files.length - 1], opts));
 			if (options.watermark)
-				promises.push(ffprobe_simple.ffprobe_simple(options.watermark));
-			
+				promises.push(ffprobe_simple.ffprobe_simple(options.watermark, opts));
+			if (opts.test_ffmpeg)
+				promises.push(ffmpeg_test.ffmpeg_test(opts));
+
 			return Promise.and(promises).mapSuccess(function (infos) {
+
+				var testInfo = opts.test_info || {};
+				if (opts.test_ffmpeg)
+					testInfo = infos.pop();
 				
 				var watermarkInfo = null;
 				if (options.watermark)
@@ -76,7 +84,7 @@ Scoped.require([
 				
 				var args = [];
 
-				
+
 				/*
 				 * 
 				 * Synchronize Audio & Video 
@@ -142,6 +150,8 @@ Scoped.require([
 //try {
 				
 				if (options.output_type !== 'audio') {
+					if (options.auto_rotate && testInfo.capabilities && testInfo.capabilities.auto_rotate)
+						options.auto_rotate = false;
 					var source = infos[0];
 					if (options.rotate) {
 						options.auto_rotate = true;
@@ -305,7 +315,7 @@ Scoped.require([
 						var posX = options.watermark_x * (targetWidth - scaleWidth);
 						var posY = options.watermark_y * (targetHeight - scaleHeight);
 						var v = vfilters ? vfilters + "[next];[next]": "";
-						vfilters = "movie=" + watermarkInfo.filename + "," +
+						vfilters = "movie=" + options.watermark + "," +
 								   "scale=" + [Math.round(scaleWidth), Math.round(scaleHeight)].join(":") + "[wm];[in]" + v + "[wm]" +
 								   "overlay=" + [Math.round(posX), Math.round(posY)].join(":") + "[out]";
 					}
@@ -338,8 +348,21 @@ Scoped.require([
 					if (options.faststart && options.video_format === "mp4")
 						args.push(helpers.paramsFastStart);
 					var format = helpers.videoFormats[options.video_format];
-					if (format && (format.fmt || format.vcodec || format.acodec || format.params))						
-						args.push(helpers.paramsVideoFormat(format.fmt, format.vcodec, format.acodec, format.params));
+					if (format && (format.fmt || format.vcodec || format.acodec || format.params)) {
+						var acodec = format.acodec;
+						if (Types.is_array(acodec)) {
+							if (testInfo.encoders) {
+								var encoders = Objs.objectify(testInfo.encoders);
+								acodec = acodec.filter(function (codec) {
+									return encoders[codec];
+								});
+							}
+							if (acodec.length === 0)
+								acodec = format.acodec;
+							acodec = acodec[0];
+						}
+                        args.push(helpers.paramsVideoFormat(format.fmt, format.vcodec, acodec, format.params));
+                    }
 					if (options.framerate)
 						args.push(helpers.paramsFramerate(options.framerate, format.bframes, options.framerate_gop));
 					args.push(helpers.paramsVideoCodecUniversalConfig);
@@ -374,8 +397,8 @@ Scoped.require([
 				return ffmpeg_multi_pass.ffmpeg_multi_pass(files, args, passes, output, function (progress) {
 					if (eventCallback)
 						eventCallback.call(eventContext || this, helpers.parseProgress(progress, duration));
-				}, this).mapSuccess(function () {
-					return ffprobe_simple.ffprobe_simple(output);
+				}, this, opts).mapSuccess(function () {
+					return ffprobe_simple.ffprobe_simple(output, opts);
 				}, this);
 			});
 			

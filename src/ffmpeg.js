@@ -2,25 +2,31 @@ Scoped.require([
     "betajs:Promise",
     "betajs:Types"
 ], function (Promise, Types) {
+
+    var DockerPolyfill = require("docker-polyfill");
 	
 	var progress_regex = /\s*([^[=\s]+)\s*=\s*([^[=\s]+)/g;
 
 	module.exports = {
 			 
-		ffmpeg: function (files, options, output, eventCallback, eventContext) {
+		ffmpeg: function (files, options, output, eventCallback, eventContext, opts) {
 			var promise = Promise.create();
-			var commands = [];
+			var args = [];
 			if (Types.is_string(files))
 				files = [files];
 			files.forEach(function (file) {
-				commands.push("-i");
-				commands.push(file);
+				args.push("-i");
+				args.push(file);
 			});
-			commands = commands.concat(options);
-			commands.push("-y");
-			commands.push(output);		
-//	console.log(commands.join(" "));
-			var file = require("child_process").spawn("ffmpeg", commands.join(" ").split(" "));
+            args = args.concat(options);
+            args.push("-y");
+            args.push(output);
+			//	console.log(args.join(" "));
+			var file = DockerPolyfill.polyfillRun({
+				command: "ffmpeg",
+				argv: args.join(" ").split(" "),
+				docker: opts ? opts.docker : undefined
+			});
 			var lines = "";
 			file.stderr.on("data", function (data) {
 				var line = data.toString();
@@ -48,7 +54,7 @@ Scoped.require([
 					var errlines = lines.split("\n");
 					promise.asyncError({
 						message: errlines[errlines.length - 2],
-						command: commands.join(" ")
+						command: args.join(" ")
 					});
 				}
 			});

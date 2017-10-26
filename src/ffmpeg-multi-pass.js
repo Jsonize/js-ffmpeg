@@ -9,11 +9,11 @@ Scoped.require([
 	
 	module.exports = {
 			 
-		ffmpeg_multi_pass: function (files, options, passes, output, eventCallback, eventContext) {
+		ffmpeg_multi_pass: function (files, options, passes, output, eventCallback, eventContext, opts) {
 			options = options || [];
-			
+
 			if (passes === 1)
-				return ffmpeg.ffmpeg(files, options, output, eventCallback, eventContext);
+				return ffmpeg.ffmpeg(files, options, output, eventCallback, eventContext, opts);
 			 
 			var promise = Promise.create();
 			
@@ -35,7 +35,7 @@ Scoped.require([
 					progress.passes = 2;
 					if (eventCallback)
 						eventCallback.call(this, progress);
-				}, this).forwardError(promise).success(function () {
+				}, this, opts).forwardError(promise).success(function () {
 					ffmpeg.ffmpeg(files, options.concat([
      	                '-pass',
     	                '2',
@@ -46,7 +46,7 @@ Scoped.require([
 						progress.passes = 2;
 						if (eventCallback)
 							eventCallback.call(this, progress);
-					}, this).forwardCallback(promise);
+					}, this, opts).forwardCallback(promise);
 				}, this);
 			});
 				

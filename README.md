@@ -1,4 +1,4 @@
-# js-ffmpeg 0.0.15
+# js-ffmpeg 0.0.17
 
 This is a simple wrapper for FFMPEG and FFPROBE.
 

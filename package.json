@@ -1,23 +1,25 @@
 {
 	"name": "js-ffmpeg",
 	"description": "JS FFMpeg",
-	"version": "0.0.16",
+	"version": "0.0.17",
 	"author": "Ziggeo",
 	"repository": "https://github.com/jsonize/js-ffmpeg",
 	"license": "Apache-2.0",
-    "engines": {
-	    "node": ""
- 	},
- 	"main": "index.js",
+	"engines": {
+		"node": ""
+	},
+	"main": "index.js",
 	"devDependencies": {
-		"grunt": "",
-        "grunt-node-qunit": "",
-        "qunit": "",
-        "grunt-contrib-jshint": ""
+		"grunt": "^1.0.1",
+		"grunt-contrib-jshint": "^1.1.0",
+		"grunt-shell": "^2.1.0",
+		"qunitjs": "^2.4.1"
 	},
 	"dependencies": {
-	    "tmp": "",
-	    "betajs-scoped": "~0.0.13",
-	    "betajs": "~1.0.96"
-	}	
+		"betajs": "~1.0.96",
+		"betajs-scoped": "~0.0.13",
+		"docker-polyfill": "~0.0.1",
+		"node-getopt": "^0.2.3",
+		"tmp": "0.0.33"
+	}
 }

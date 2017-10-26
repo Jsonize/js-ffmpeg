@@ -5,14 +5,14 @@ Scoped.require([
 	
 	module.exports = {
 			
-		ffprobe_simple: function (file) {
+		ffprobe_simple: function (file, options) {
 			var parseIntUndefined = function (source, key) {
 				return key in source ? parseInt(source[key], 10) : undefined;
 			};
 			
 			if (!require('fs').existsSync(file))
 				return Promise.error("File does not exist");
-			return require(__dirname + "/ffprobe.js").ffprobe(file).mapSuccess(function (json) {
+			return require(__dirname + "/ffprobe.js").ffprobe(file, options).mapSuccess(function (json) {
 				if (!json.format || !json.streams)
 					return Promise.error("Cannot read file");
 				var result = {

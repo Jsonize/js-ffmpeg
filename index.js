@@ -13,6 +13,8 @@ module.exports = {
 	
 	ffmpeg_simple: require(__dirname + "/src/ffmpeg-simple.js").ffmpeg_simple,
 	
-	ffmpeg_volume_detect: require(__dirname + "/src/ffmpeg-volume-detect.js").ffmpeg_volume_detect
+	ffmpeg_volume_detect: require(__dirname + "/src/ffmpeg-volume-detect.js").ffmpeg_volume_detect,
+
+	ffmpeg_test: require(__dirname + "/src/ffmpeg-test.js").ffmpeg_test
 		
 };

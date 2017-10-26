@@ -1,13 +1,30 @@
 Scoped.require([
     "betajs:Promise"
 ], function (Promise) {
+
+	var DockerPolyfill = require("docker-polyfill");
 	
 	module.exports = {
 			
-		ffprobe: function (file) {
+		ffprobe: function (fileName, options) {
+			options = options || {};
 			var promise = Promise.create();
-			var cmd = 'ffprobe -v quiet -print_format json -show_format -show_streams ' + file;
-			require("child_process").exec(cmd, function (error, stdout, stderr) {
+			var file = DockerPolyfill.polyfillRun({
+				command: "ffprobe",
+				argv: ['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', fileName],
+				docker: options.docker
+			});
+			/*
+            var stderr = "";
+            file.stderr.on("data", function (data) {
+                stderr += data;
+            });
+            */
+            var stdout = "";
+            file.stdout.on("data", function (data) {
+                stdout += data;
+            });
+            file.on("close", function (error) {
 				if (error) {
 					promise.asyncError("Cannot read file");
 					return;
@@ -16,7 +33,7 @@ Scoped.require([
 					var success = JSON.parse(stdout);
 					promise.asyncSuccess(success);
 				} catch (e) {
-					promise.asyncError("Parse error: " + stdout);
+					promise.asyncError("FFProbe Parse error: " + stdout);
 				}
 			});
 			return promise;

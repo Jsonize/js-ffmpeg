@@ -3,24 +3,30 @@ Scoped.require([
     "betajs:Types"
 ], function (Promise, Types) {
 
+    var DockerPolyfill = require("docker-polyfill");
+
 	var mean_volume_regex = /.*mean_volume:\s*([^[\s]+)\s*/g;
 	var max_volume_regex = /.*max_volume:\s*([^[\s]+)\s*/g;
 	
 	module.exports = {
 			 
-		ffmpeg_volume_detect: function (inputFile) {
+		ffmpeg_volume_detect: function (inputFile, options) {
+			options = options || {};
 			var promise = Promise.create();
-			var commands = [
-                 "-i",
-                 inputFile,
-                 "-vn",
-                 "-af",
-                 "volumedetect",
-                 "-f",
-                 "null",
-                 "/dev/null"
-			];
-			var file = require("child_process").spawn("ffmpeg", commands.join(" ").split(" "));
+			var file = DockerPolyfill.polyfillRun({
+				command: "ffmpeg",
+				argv: [
+                    "-i",
+                    inputFile,
+                    "-vn",
+                    "-af",
+                    "volumedetect",
+                    "-f",
+                    "null",
+                    "/dev/null"
+                ],
+				docker: options.docker
+			});
 			var lines = "";
 			file.stderr.on("data", function (data) {
 				var line = data.toString();

@@ -2,13 +2,16 @@ module.exports = function(grunt) {
 
 	grunt.initConfig({
 		pkg : grunt.file.readJSON('package.json'),
-		'node-qunit' : {
-			dist : {
-				code : './index.js',
-				tests : grunt.file.expand("./tests/tests/*.js"),
-				done : function(err, res) {
-					publishResults("node", res, this.async());
-				}
+		shell : {
+			qunit : {
+				command: ["node_modules/qunitjs/bin/qunit"].concat(["index.js", "tests/tests/*.js"]).join(" "),
+            	options: {
+            		stdout: true,
+                	stderr: true
+        		},
+				src: [
+					"index.js", "tests/tests/*.js"
+				]
 			}
 		},
 		jshint : {
@@ -21,9 +24,9 @@ module.exports = function(grunt) {
 		}
 	});
 
-	grunt.loadNpmTasks('grunt-node-qunit');
+	grunt.loadNpmTasks('grunt-shell');
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 
-	grunt.registerTask('default', [ 'jshint', 'node-qunit' ]);
+	grunt.registerTask('default', [ 'jshint', 'shell:qunit' ]);
 
 };

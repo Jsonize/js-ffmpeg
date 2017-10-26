@@ -1,21 +1,21 @@
 var ffmpeg = require(__dirname + "/../../index.js");
+var settings = require(__dirname + "/settings.js");
 
-var ROTATED_MOV_VIDEO = "tests/assets/iphone_rotated.mov";
-var IMAGE_FILE = "tests/assets/logo.png";
+var ROTATED_MOV_VIDEO = __dirname + "/../assets/iphone_rotated.mov";
+var IMAGE_FILE = __dirname + "/../assets/logo.png";
 
-test("ffprobe rotated mov", function() {
-	stop();
-	ffmpeg.ffprobe(ROTATED_MOV_VIDEO).callback(function (error, value) {
-		QUnit.deepEqual(value.format.nb_streams, 2);
-		start();
+QUnit.test("ffprobe rotated mov", function (assert) {
+	var done = assert.async();
+	ffmpeg.ffprobe(ROTATED_MOV_VIDEO, settings).callback(function (error, value) {
+		assert.deepEqual(value.format.nb_streams, 2);
+		done();
 	});
 });
 
-
-test("ffprobe image", function() {
-	stop();
-	ffmpeg.ffprobe(IMAGE_FILE).callback(function(error, value) {
-		QUnit.deepEqual(value.format.nb_streams, 1);
-		start();
-	});
+QUnit.test("ffprobe image", function (assert) {
+    var done = assert.async();
+	ffmpeg.ffprobe(IMAGE_FILE, settings).callback(function(error, value) {
+        assert.deepEqual(value.format.nb_streams, 1);
+        done();
+    });
 });

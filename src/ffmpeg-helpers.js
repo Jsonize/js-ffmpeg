@@ -16,7 +16,7 @@ Scoped.require([
 		videoFormats: {
 			"mp4": {
 				bframes: true,
-				acodec: "libfaac",
+				acodec: ["libfaac", "libfdk_aac", "aac", "libvo_aacenc"],
 				vcodec: "libx264",
 				fmt: "mp4",
 				passes: 2,

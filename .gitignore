@@ -2,3 +2,5 @@ node_modules
 temp
 npm-debug.log
 .idea
+tmp
+package-lock.json
