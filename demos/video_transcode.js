@@ -11,7 +11,7 @@ jsffmpeg.ffmpeg_simple(args.source, {
 	height: 480,
 	normalize_audio: true
 }, args.target, null, null, {
-	docker: options.docker,
+	docker: args.docker,
 	test_ffmpeg: true
 }).success(function (data) {
 	console.log(data);

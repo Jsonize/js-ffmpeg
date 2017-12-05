@@ -4,6 +4,7 @@ Scoped.require([
 ], function (Promise, Types) {
 
     var DockerPolyfill = require("docker-polyfill");
+    var FS = require("fs");
 	
 	var progress_regex = /\s*([^[=\s]+)\s*=\s*([^[=\s]+)/g;
 
@@ -21,6 +22,8 @@ Scoped.require([
             args = args.concat(options);
             args.push("-y");
             args.push(output);
+            // Touch file so docker keeps the right owner
+            FS.writeFileSync(output, "");
 			//	console.log(args.join(" "));
 			var file = DockerPolyfill.polyfillRun({
 				command: "ffmpeg",
