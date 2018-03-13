@@ -79,7 +79,9 @@ Scoped.require([
 				var audioNormalizationInfo = null;
 				if (options.normalize_audio)
 					audioNormalizationInfo = infos.pop();
-				
+
+				var isImage = infos.length === 1 && infos[0].image && !infos[0].video && !infos[0].audio;
+
 				var passes = 1;
 				
 				var args = [];
@@ -133,10 +135,12 @@ Scoped.require([
 				 * 
 				 */
 				var duration = helpers.computeDuration(infos[0].duration, options.time_start, options.time_end, options.time_limit);
-				if (options.output_type === 'image')
-					args.push(helpers.paramsImageExtraction(options.image_position, options.image_percentage, duration));
-				else if (options.time_start || options.time_end || options.time_limit)
-					args.push(helpers.paramsTimeDuration(options.time_start, options.time_end, options.time_limit));
+				if (!isImage) {
+                    if (options.output_type === 'image')
+                        args.push(helpers.paramsImageExtraction(options.image_position, options.image_percentage, duration));
+                    else if (options.time_start || options.time_end || options.time_limit)
+                        args.push(helpers.paramsTimeDuration(options.time_start, options.time_end, options.time_limit));
+                }
 				
 				
 				var videoInfo = infos[0].video;
@@ -153,17 +157,18 @@ Scoped.require([
 					if (options.auto_rotate && testInfo.capabilities && testInfo.capabilities.auto_rotate)
 						options.auto_rotate = false;
 					var source = infos[0];
+					var sourceInfo = source.video || source.image;
 					if (options.rotate) {
 						options.auto_rotate = true;
-						source.video.rotation = (source.video.rotation + options.rotate) % 360;
+                        sourceInfo.rotation = (sourceInfo.rotation + options.rotate) % 360;
 						if (options.rotate % 180 === 90) {
-							var temp = source.video.rotated_width;
-							source.video.rotated_width = source.video.rotated_height;
-							source.video.rotated_height = temp;
+							var temp = sourceInfo.rotated_width;
+                            sourceInfo.rotated_width = sourceInfo.rotated_height;
+                            sourceInfo.rotated_height = temp;
 						}
 					}
-					sourceWidth = source.video.rotated_width;
-					sourceHeight = source.video.rotated_height;
+					sourceWidth = sourceInfo.rotated_width;
+					sourceHeight = sourceInfo.rotated_height;
 					var sourceRatio = sourceWidth / sourceHeight;
 					targetWidth = sourceWidth;
 					targetHeight = sourceHeight;
@@ -180,11 +185,11 @@ Scoped.require([
 					var vfilters = [];
 					var sizing = "";
 					
-					if (options.auto_rotate && source.video.rotation) {
-						if (source.video.rotation % 180 === 90) {
-							vfilters.push("transpose=" + (source.video.rotation === 90 ? 1 : 2));
+					if (options.auto_rotate && sourceInfo.rotation) {
+						if (sourceInfo.rotation % 180 === 90) {
+							vfilters.push("transpose=" + (sourceInfo.rotation === 90 ? 1 : 2));
 						}
-						if (source.video.rotation === 180) {
+						if (sourceInfo.rotation === 180) {
 							vfilters.push("hflip,vflip");
 						}
 						args.push("-metadata:s:v:0");
@@ -303,14 +308,15 @@ Scoped.require([
 					 */
 
 					if (watermarkInfo) {
-						var scaleWidth = watermarkInfo.video.width;
-						var scaleHeight = watermarkInfo.video.height;
+						var watermarkMeta = watermarkInfo.image || watermarkInfo.video;
+						var scaleWidth = watermarkMeta.width;
+						var scaleHeight = watermarkMeta.height;
 						var maxWidth = targetWidth * options.watermark_size;
 						var maxHeight = targetHeight * options.watermark_size;
 						if (scaleWidth > maxWidth || scaleHeight > maxHeight) {
 							var watermarkRatio = maxWidth * scaleHeight >= maxHeight * scaleWidth;
-							scaleWidth = watermarkRatio ? watermarkInfo.video.width * maxHeight / watermarkInfo.video.height : maxWidth;
-							scaleHeight = !watermarkRatio ? watermarkInfo.video.height * maxWidth / watermarkInfo.video.width : maxHeight;
+							scaleWidth = watermarkRatio ? watermarkMeta.width * maxHeight / watermarkMeta.height : maxWidth;
+							scaleHeight = !watermarkRatio ? watermarkMeta.height * maxWidth / watermarkMeta.width : maxHeight;
 						}
 						var posX = options.watermark_x * (targetWidth - scaleWidth);
 						var posY = options.watermark_y * (targetHeight - scaleHeight);
@@ -333,7 +339,7 @@ Scoped.require([
 				
 					
 				}
-				
+
 				
 				/*
 				 * 
@@ -392,7 +398,7 @@ Scoped.require([
 				}
 
 //} catch(e) {console.log(e);}
-				
+
 //console.log(files, args, passes, output);
 				return ffmpeg_multi_pass.ffmpeg_multi_pass(files, args, passes, output, function (progress) {
 					if (eventCallback)

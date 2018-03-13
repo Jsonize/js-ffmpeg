@@ -42,7 +42,7 @@ Scoped.require([
 							bit_rate: parseIntUndefined(stream, "bit_rate"),
 							frames: parseIntUndefined(stream, "nb_frames")
 						};
-						if (json.format.format_name === "image" || json.format.format_name === "image2")
+						if (json.format.format_name === "image" || json.format.format_name === "image2" || stream.codec_name === 'png')
 							result.image = video;
 						else
 							result.video = video;
