@@ -12,6 +12,8 @@ module.exports = {
 	ffprobe_simple: require(__dirname + "/src/ffprobe-simple.js").ffprobe_simple,
 	
 	ffmpeg_simple: require(__dirname + "/src/ffmpeg-simple.js").ffmpeg_simple,
+
+    ffmpeg_graceful: require(__dirname + "/src/ffmpeg-graceful.js").ffmpeg_graceful,
 	
 	ffmpeg_volume_detect: require(__dirname + "/src/ffmpeg-volume-detect.js").ffmpeg_volume_detect,
 
