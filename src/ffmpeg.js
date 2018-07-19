@@ -11,6 +11,7 @@ Scoped.require([
 	module.exports = {
 			 
 		ffmpeg: function (files, options, output, eventCallback, eventContext, opts) {
+			opts = opts || {};
 			var promise = Promise.create();
 			var args = [];
 			if (Types.is_string(files))
@@ -26,9 +27,9 @@ Scoped.require([
             FS.writeFileSync(output, "");
 			//	console.log(args.join(" "));
 			var file = DockerPolyfill.polyfillRun({
-				command: "ffmpeg",
+				command: opts.ffmpeg_binary || "ffmpeg",
 				argv: args.join(" ").split(" "),
-				docker: opts ? opts.docker : undefined
+				docker: opts.docker
 			});
 			var lines = "";
 			file.stderr.on("data", function (data) {

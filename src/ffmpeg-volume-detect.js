@@ -14,7 +14,7 @@ Scoped.require([
 			options = options || {};
 			var promise = Promise.create();
 			var file = DockerPolyfill.polyfillRun({
-				command: "ffmpeg",
+				command: options.ffmpeg_binary || "ffmpeg",
 				argv: [
                     "-i",
                     inputFile,

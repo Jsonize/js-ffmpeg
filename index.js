@@ -17,6 +17,8 @@ module.exports = {
 	
 	ffmpeg_volume_detect: require(__dirname + "/src/ffmpeg-volume-detect.js").ffmpeg_volume_detect,
 
-	ffmpeg_test: require(__dirname + "/src/ffmpeg-test.js").ffmpeg_test
+	ffmpeg_test: require(__dirname + "/src/ffmpeg-test.js").ffmpeg_test,
+
+    ffmpeg_multi_pass: require(__dirname + "/src/ffmpeg-multi-pass.js").ffmpeg_multi_pass
 		
 };

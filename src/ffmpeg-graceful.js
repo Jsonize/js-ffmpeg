@@ -12,7 +12,7 @@ Scoped.require([
 		ffmpeg_graceful: function (files, options, output, eventCallback, eventContext, opts) {
 			options = options || {};
 			return ffmpeg_simple.ffmpeg_simple(files, options, output, eventCallback, eventContext, opts).mapError(function (err) {
-				if ((Types.is_array(files) && files.length > 1) || options["output_type"] === 'audio' || options["output_type"] === "image")
+				if ((Types.is_array(files) && files.length > 1) || options.output_type === 'audio' || options.output_type === "image")
 					return err;
 
                 var promise = Promise.create();

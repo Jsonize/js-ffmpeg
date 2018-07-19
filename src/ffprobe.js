@@ -10,7 +10,7 @@ Scoped.require([
 			options = options || {};
 			var promise = Promise.create();
 			var file = DockerPolyfill.polyfillRun({
-				command: "ffprobe",
+				command: options.ffprobe_binary || "ffprobe",
 				argv: ['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', fileName],
 				docker: options.docker
 			});

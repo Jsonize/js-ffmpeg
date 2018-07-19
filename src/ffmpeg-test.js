@@ -18,7 +18,7 @@ Scoped.require([
 			var cmd = 'ffmpeg';
 			var args = ['-codecs'];
 			var file = DockerPolyfill.polyfillRun({
-				command: "ffmpeg",
+				command: options.ffmpeg_binary || "ffmpeg",
 				argv: ["-codecs"],
 				docker: options.docker
 			});
