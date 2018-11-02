@@ -3,6 +3,7 @@ var jsffmpeg = require(__dirname + "/../index.js");
 var args = require('node-getopt').create([
 	["", "source=FILE", "source video"],
 	["", "target=FILE", "target video"],
+    ["", "watermark=FILE", "watermark image"],
 	["", "docker=CONTAINER", "docker"],
 	["", "ratiostrategy=STRATEGY", "ratio strategy"],
     ["", "sizestrategy=STRATEGY", "size strategy"],
@@ -14,6 +15,7 @@ var args = require('node-getopt').create([
 jsffmpeg.ffmpeg_graceful(args.source, {
 	width: 640,
 	height: 360,
+	watermark: args.watermark,
 	//normalize_audio: true
 	ratio_strategy: args.ratiostrategy,
 	size_strategy: args.sizestrategy,
