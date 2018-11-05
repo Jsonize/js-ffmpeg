@@ -12,7 +12,8 @@ Scoped.require([
 			var file = DockerPolyfill.polyfillRun({
 				command: options.ffprobe_binary || "ffprobe",
 				argv: ['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', fileName],
-				docker: options.docker
+				docker: options.docker,
+                timeout: options.timeout
 			});
 			/*
             var stderr = "";
@@ -24,17 +25,17 @@ Scoped.require([
             file.stdout.on("data", function (data) {
                 stdout += data;
             });
-            file.on("close", function (error) {
-				if (error) {
-					promise.asyncError("Cannot read file");
-					return;
-				}
-				try {
-					var success = JSON.parse(stdout);
-					promise.asyncSuccess(success);
-				} catch (e) {
-					promise.asyncError("FFProbe Parse error: " + stdout);
-				}
+            file.on("close", function (status) {
+                if (status !== 0) {
+                    promise.asyncError(status === null ? "Timeout reached" : "Cannot read file");
+                    return;
+                }
+                try {
+                    var success = JSON.parse(stdout);
+                    promise.asyncSuccess(success);
+                } catch (e) {
+                    promise.asyncError("FFProbe Parse error: " + stdout);
+                }
 			});
 			return promise;
 		}

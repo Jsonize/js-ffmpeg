@@ -29,7 +29,8 @@ Scoped.require([
 			var file = DockerPolyfill.polyfillRun({
 				command: opts.ffmpeg_binary || "ffmpeg",
 				argv: args.join(" ").split(" "),
-				docker: opts.docker
+				docker: opts.docker,
+				timeout: opts.timeout
 			});
 			var lines = "";
 			file.stderr.on("data", function (data) {
@@ -54,7 +55,12 @@ Scoped.require([
 			file.on("close", function (status) {
 				if (status === 0) {
 					promise.asyncSuccess();
-				} else {
+				} else if (status === null) {
+					promise.asyncError({
+						message: "Timeout reached",
+						command: args.join(" ")
+					});
+                } else {
 					var errlines = lines.split("\n");
 					promise.asyncError({
 						message: errlines[errlines.length - 2],

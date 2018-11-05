@@ -20,7 +20,8 @@ Scoped.require([
 			var file = DockerPolyfill.polyfillRun({
 				command: options.ffmpeg_binary || "ffmpeg",
 				argv: ["-codecs"],
-				docker: options.docker
+				docker: options.docker,
+                timeout: options.timeout
 			});
 			var stderr = "";
 			file.stderr.on("data", function (data) {
@@ -30,10 +31,10 @@ Scoped.require([
             file.stdout.on("data", function (data) {
                 stdout += data;
             });
-            file.on("close", function (error) {
-				if (error) {
-					promise.asyncError("Cannot execute ffmpeg");
-					return;
+            file.on("close", function (status) {
+                if (status !== 0) {
+                    promise.asyncError(status === null ? "Timeout reached" : "Cannot execute ffmpeg");
+                    return;
 				}
 				var result = {
 					version: {},

@@ -25,7 +25,8 @@ Scoped.require([
                     "null",
                     "/dev/null"
                 ],
-				docker: options.docker
+				docker: options.docker,
+                timeout: options.timeout
 			});
 			var lines = "";
 			file.stderr.on("data", function (data) {
@@ -36,6 +37,10 @@ Scoped.require([
 				lines += data;
 			});
 			file.on("close", function (status) {
+                if (status !== 0) {
+                    promise.asyncError(status === null ? "Timeout reached" : "Cannot read file");
+                    return;
+                }
 				lines = lines.split("\n");
 				if (status === 0) {
 					var mean_volume = null;

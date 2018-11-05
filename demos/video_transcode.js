@@ -5,6 +5,7 @@ var args = require('node-getopt').create([
 	["", "target=FILE", "target video"],
     ["", "watermark=FILE", "watermark image"],
 	["", "docker=CONTAINER", "docker"],
+    ["", "timeout=MS", "timeout"],
 	["", "ratiostrategy=STRATEGY", "ratio strategy"],
     ["", "sizestrategy=STRATEGY", "size strategy"],
     ["", "shrinkstrategy=STRATEGY", "shrink strategy"],
@@ -24,6 +25,7 @@ jsffmpeg.ffmpeg_graceful(args.source, {
 	mixed_strategy: args.mixedstrategy
 }, args.target, null, null, {
     test_ffmpeg: true,
+	timeout: args.timeout
 	/*docker: {
         "container" : "jrottenberg/ffmpeg",
         "proxy": "localhost:1234",

@@ -154,13 +154,13 @@ Scoped.require([
 //try {
 				
 				if (options.output_type !== 'audio') {
-					if (options.auto_rotate && testInfo.capabilities && testInfo.capabilities.auto_rotate)
-						options.auto_rotate = false;
 					var source = infos[0];
 					var sourceInfo = source.video || source.image;
+					var requiredRotation = 0;
+					if (options.auto_rotate && !(testInfo.capabilities && testInfo.capabilities.auto_rotate))
+                        requiredRotation = sourceInfo.rotation % 360;
 					if (options.rotate) {
-						options.auto_rotate = true;
-                        sourceInfo.rotation = (sourceInfo.rotation + options.rotate) % 360;
+                        requiredRotation = (requiredRotation + options.rotate) % 360;
 						if (options.rotate % 180 === 90) {
 							var temp = sourceInfo.rotated_width;
                             sourceInfo.rotated_width = sourceInfo.rotated_height;
@@ -185,11 +185,11 @@ Scoped.require([
 					var vfilters = [];
 					var sizing = "";
 					
-					if (options.auto_rotate && sourceInfo.rotation) {
-						if (sourceInfo.rotation % 180 === 90) {
-							vfilters.push("transpose=" + (sourceInfo.rotation === 90 ? 1 : 2));
+					if (requiredRotation !== 0) {
+						if (requiredRotation % 180 === 90) {
+							vfilters.push("transpose=" + (requiredRotation === 90 ? 1 : 2));
 						}
-						if (sourceInfo.rotation === 180) {
+						if (requiredRotation === 180) {
 							vfilters.push("hflip,vflip");
 						}
 						args.push("-metadata:s:v:0");
