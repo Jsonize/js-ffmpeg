@@ -52,17 +52,29 @@ Scoped.require([
 				watermark: null,
 				watermark_size: 0.25,
 				watermark_x: 0.95,
-				watermark_y: 0.95
+				watermark_y: 0.95,
+
+				watermarks: []
 			}, options);
 
 			var promises = files.map(function (file) {
 				return ffprobe_simple.ffprobe_simple(file, opts);
 			});
+
+			if (options.watermark) {
+				options.watermarks.unshift({
+					watermark: options.watermark,
+					watermark_size: options.watermark_size,
+					watermark_x: options.watermark_x,
+					watermark_y: options.watermark_y
+				});
+			}
 			
 			if (options.normalize_audio)
 				promises.push(ffmpeg_volume_detect.ffmpeg_volume_detect(files[options.audio_map || files.length - 1], opts));
-			if (options.watermark)
-				promises.push(ffprobe_simple.ffprobe_simple(options.watermark, opts));
+			options.watermarks.forEach(function (wm) {
+				promises.push(ffprobe_simple.ffprobe_simple(wm.watermark, opts));
+			}, this);
 			if (opts.test_ffmpeg)
 				promises.push(ffmpeg_test.ffmpeg_test(opts));
 
@@ -72,10 +84,11 @@ Scoped.require([
 				if (opts.test_ffmpeg)
 					testInfo = infos.pop();
 				
-				var watermarkInfo = null;
-				if (options.watermark)
-					watermarkInfo = infos.pop();
-				
+				var watermarkInfos = [];
+				options.watermarks.forEach(function () {
+					watermarkInfos.unshift(infos.pop());
+				});
+
 				var audioNormalizationInfo = null;
 				if (options.normalize_audio)
 					audioNormalizationInfo = infos.pop();
@@ -307,23 +320,37 @@ Scoped.require([
 					 * 
 					 */
 
-					if (watermarkInfo) {
+					var watermarkFilters = options.watermarks.map(function (watermark, i) {
+						var watermarkInfo = watermarkInfos[i];
 						var watermarkMeta = watermarkInfo.image || watermarkInfo.video;
 						var scaleWidth = watermarkMeta.width;
 						var scaleHeight = watermarkMeta.height;
-						var maxWidth = targetWidth * options.watermark_size;
-						var maxHeight = targetHeight * options.watermark_size;
+						var maxWidth = targetWidth * watermark.watermark_size;
+						var maxHeight = targetHeight * watermark.watermark_size;
 						if (scaleWidth > maxWidth || scaleHeight > maxHeight) {
 							var watermarkRatio = maxWidth * scaleHeight >= maxHeight * scaleWidth;
 							scaleWidth = watermarkRatio ? watermarkMeta.width * maxHeight / watermarkMeta.height : maxWidth;
 							scaleHeight = !watermarkRatio ? watermarkMeta.height * maxWidth / watermarkMeta.width : maxHeight;
 						}
-						var posX = options.watermark_x * (targetWidth - scaleWidth);
-						var posY = options.watermark_y * (targetHeight - scaleHeight);
-						var v = vfilters ? vfilters + "[next];[next]": "";
-						vfilters = "movie=" + options.watermark + "," +
-								   "scale=" + [Math.round(scaleWidth), Math.round(scaleHeight)].join(":") + "[wm];[in]" + v + "[wm]" +
-								   "overlay=" + [Math.round(posX), Math.round(posY)].join(":") + "[out]";
+						var posX = watermark.watermark_x * (targetWidth - scaleWidth);
+						var posY = watermark.watermark_y * (targetHeight - scaleHeight);
+
+
+						return [
+							"[prewm" + i + "];",
+							"movie=" + watermark.watermark + ",",
+							"scale=" + [Math.round(scaleWidth), Math.round(scaleHeight)].join(":"),
+							"[wm" + i + "];",
+							"[prewm" + i + "][wm" + i + "]",
+							"overlay=" + [Math.round(posX), Math.round(posY)].join(":")
+						].join("");
+					}).join("");
+
+					if (watermarkFilters) {
+						if (vfilters)
+							vfilters = "[in]" + vfilters + watermarkFilters + "[out]";
+						else
+							vfilters = watermarkFilters.substring("[prewm0];".length).replace("[prewm0]", "[in]") + "[out]";
 					}
 
 					

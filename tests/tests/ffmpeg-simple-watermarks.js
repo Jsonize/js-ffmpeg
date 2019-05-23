@@ -14,3 +14,25 @@ QUnit.test("ffmpeg-simple with logo", function(assert) {
 		done();
 	});
 });
+
+
+
+QUnit.test("ffmpeg-simple with double logo", function(assert) {
+	var done = assert.async();
+	ffmpeg.ffmpeg_simple(STANDARD_MP4, {
+		watermarks: [{
+			watermark: WATERMARK_FILE,
+			watermark_size: 0.25,
+			watermark_x: 0.95,
+			watermark_y: 0.95
+		}, {
+			watermark: WATERMARK_FILE,
+			watermark_size: 0.25,
+			watermark_x: 0.05,
+			watermark_y: 0.05
+		}]
+	}, TEMP_MP4_VIDEO, null, null, settings).callback(function (error, value) {
+		assert.ok(!error);
+		done();
+	});
+});

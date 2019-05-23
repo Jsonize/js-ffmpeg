@@ -1,4 +1,5 @@
 module.exports = {
+    test_ffmpeg: true
     /*
     test_info: {
         capabilities: {
