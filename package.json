@@ -19,7 +19,7 @@
 		"betajs": "~1.0.96",
 		"betajs-scoped": "~0.0.13",
 		"docker-polyfill": "~0.0.1",
-		"node-getopt": "^0.2.3",
+		"node-getopt": "^0.3.2",
 		"tmp": "0.0.33"
 	}
 }

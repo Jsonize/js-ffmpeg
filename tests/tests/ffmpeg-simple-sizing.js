@@ -367,3 +367,5 @@ QUnit.test("ffmpeg-simple mixed greater ratio, fixed ratio, crop-pad", function 
 		done();
 	});
 });
+
+

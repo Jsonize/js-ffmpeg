@@ -4,6 +4,7 @@ var settings = require(__dirname + "/settings.js");
 var NOT_EXISTING_VIDEO = __dirname + "/notexisting.mp4";
 var ROTATED_MOV_VIDEO = __dirname + "/../assets/iphone_rotated.mov";
 var NO_VIDEO = __dirname + "/../assets/novideo.mp4";
+var EXPLOIT_FILE = __dirname + "/../assets/etx_passwd_xbin.avi";
 
 QUnit.test("ffprobe-simple not existing", function(assert) {
 	var done = assert.async();
@@ -63,6 +64,14 @@ QUnit.test("ffprobe-simple rotated mov", function(assert) {
 				frames: 66
 			}
 		});
+		done();
+	});
+});
+
+QUnit.test("ffprobe-simple exploit", function (assert) {
+	var done = assert.async();
+	ffmpeg.ffprobe_simple(EXPLOIT_FILE, settings).callback(function (error, value) {
+		assert.ok(error);
 		done();
 	});
 });

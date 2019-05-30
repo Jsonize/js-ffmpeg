@@ -6,11 +6,11 @@ var args = require('node-getopt').create([
     ["", "watermark=FILE", "watermark image"],
 	["", "docker=CONTAINER", "docker"],
     ["", "timeout=MS", "timeout"],
-	["", "ratiostrategy=STRATEGY", "ratio strategy"],
-    ["", "sizestrategy=STRATEGY", "size strategy"],
-    ["", "shrinkstrategy=STRATEGY", "shrink strategy"],
-    ["", "stretchstrategy=STRATEGY", "stretch strategy"],
-    ["", "mixedstrategy=STRATEGY", "mixed strategy"]
+	["", "ratiostrategy=STRATEGY", "ratio strategy", "fixed"],
+    ["", "sizestrategy=STRATEGY", "size strategy", "keep"],
+    ["", "shrinkstrategy=STRATEGY", "shrink strategy", "shrink-pad"],
+    ["", "stretchstrategy=STRATEGY", "stretch strategy", "pad"],
+    ["", "mixedstrategy=STRATEGY", "mixed strategy", "shrink-pad"]
 ]).bindHelp().parseSystem().options;
 
 jsffmpeg.ffmpeg_graceful(args.source, {
