@@ -52,14 +52,19 @@ Scoped.require([
 			file.stderr.on("end", function (data) {
 				lines += data;
 			});
+			var timeouted = false;
+			file.on("timeout", function () {
+				timeouted = true;
+				promise.asyncError({
+					message: "Timeout reached",
+					command: args.join(" ")
+				});
+			});
 			file.on("close", function (status) {
+				if (timeouted)
+					return;
 				if (status === 0) {
 					promise.asyncSuccess();
-				} else if (status === null) {
-					promise.asyncError({
-						message: "Timeout reached",
-						command: args.join(" ")
-					});
                 } else {
 					var errlines = lines.split("\n");
 					promise.asyncError({

@@ -207,12 +207,19 @@ Scoped.require([
 						}
 						args.push("-metadata:s:v:0");
 						args.push("rotate=0");
-					} 
-					if (options.width && options.height) {
+					}
+
+					var modulus = options.output_type === 'video' ? helpers.videoFormats[options.video_format].modulus || 1 : 1;
+					var modulusAdjust = function (value) {
+						value = Math.round(value);
+						return value % modulus === 0 ? value : (Math.round(value / modulus) * modulus);
+					};
+
+					if (modulusAdjust(sourceWidth) !== sourceWidth || modulusAdjust(sourceHeight) !== sourceHeight || options.width || options.height) {
 						
 						// Step 2: Fix Size & Ratio
-						targetWidth = options.width;
-						targetHeight = options.height;
+						targetWidth = options.width || sourceWidth;
+						targetHeight = options.height || sourceHeight;
 						targetRatio = targetWidth / targetHeight;
 						ratioSourceTarget = Math.sign(sourceWidth * targetHeight - targetWidth * sourceHeight);
 						
@@ -234,11 +241,11 @@ Scoped.require([
 						}
 						
 						var vf = [];
-						
+
 						// Step 3: Modulus
-						var modulus = options.output_type === 'video' ? helpers.videoFormats[options.video_format].modulus || 1 : 1;
-						targetWidth = targetWidth % modulus === 0 ? targetWidth : (Math.round(targetWidth / modulus) * modulus);
-						targetHeight = targetHeight % modulus === 0 ? targetHeight : (Math.round(targetHeight / modulus) * modulus);
+
+						targetWidth = modulusAdjust(targetWidth);
+						targetHeight = modulusAdjust(targetHeight);
 
 						var cropped = false;
 						var addCrop = function (x, y, multi) {

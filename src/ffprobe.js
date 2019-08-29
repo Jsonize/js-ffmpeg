@@ -25,9 +25,16 @@ Scoped.require([
             file.stdout.on("data", function (data) {
                 stdout += data;
             });
+            var timeouted = false;
+            file.on("timeout", function () {
+                timeouted = true;
+                promise.asyncError("Timeout reached");
+            });
             file.on("close", function (status) {
+                if (timeouted)
+                    return;
                 if (status !== 0) {
-                    promise.asyncError(status === null ? "Timeout reached" : "Cannot read file");
+                    promise.asyncError("Cannot read file");
                     return;
                 }
                 try {

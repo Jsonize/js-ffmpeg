@@ -14,10 +14,9 @@ QUnit.test("ffmpeg mov to mp4", function(assert) {
 	});
 });
 
-
 QUnit.test("ffmpeg timeout", function (assert) {
     var done = assert.async();
-    ffmpeg.ffmpeg(ROTATED_MOV_VIDEO, [], TEMP_MP4_VIDEO, null, null, BetaJS.Objs.extend({timeout: 50}, settings)).callback(function (error, value) {
+    ffmpeg.ffmpeg(ROTATED_MOV_VIDEO, [], TEMP_MP4_VIDEO, null, null, BetaJS.Objs.extend({timeout: 1}, settings)).callback(function (error, value) {
         assert.equal(error.message, "Timeout reached");
         done();
     });
@@ -25,7 +24,7 @@ QUnit.test("ffmpeg timeout", function (assert) {
 
 QUnit.test("ffmpeg exploit", function (assert) {
     var done = assert.async();
-    ffmpeg.ffmpeg(EXPLOIT_FILE, [], TEMP_MP4_VIDEO, null, null, BetaJS.Objs.extend({timeout: 50}, settings)).callback(function (error, value) {
+    ffmpeg.ffmpeg(EXPLOIT_FILE, [], TEMP_MP4_VIDEO, null, null, settings).callback(function (error, value) {
         assert.ok(error);
         done();
     });
