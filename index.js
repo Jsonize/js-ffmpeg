@@ -10,7 +10,9 @@ module.exports = {
 	ffmpeg: require(__dirname + "/src/ffmpeg.js").ffmpeg,
 	
 	ffprobe_simple: require(__dirname + "/src/ffprobe-simple.js").ffprobe_simple,
-	
+
+	ffmpeg_simple_raw: require(__dirname + "/src/ffmpeg-simple.js").ffmpeg_simple_raw,
+
 	ffmpeg_simple: require(__dirname + "/src/ffmpeg-simple.js").ffmpeg_simple,
 
     ffmpeg_graceful: require(__dirname + "/src/ffmpeg-graceful.js").ffmpeg_graceful,

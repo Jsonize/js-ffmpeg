@@ -12,8 +12,20 @@ Scoped.require([
 	
 	
 	module.exports = {
-			 
+
 		ffmpeg_simple: function (files, options, output, eventCallback, eventContext, opts) {
+			return this.ffmpeg_simple_raw(files, options, output, eventCallback, eventContext, opts).mapError(function (e) {
+				if (e.message) {
+					if (e.message.indexOf("Too many packets buffered for output stream") >= 0 && !options.maxMuxingQueueSize) {
+						options.maxMuxingQueueSize = true;
+						return this.ffmpeg_simple_raw(files, options, output, eventCallback, eventContext, opts);
+					}
+				}
+ 				return e;
+			}, this);
+		},
+			 
+		ffmpeg_simple_raw: function (files, options, output, eventCallback, eventContext, opts) {
 			opts = opts || {};
 			if (Types.is_string(files))
 				files = [files];
@@ -54,7 +66,9 @@ Scoped.require([
 				watermark_x: 0.95,
 				watermark_y: 0.95,
 
-				watermarks: []
+				watermarks: [],
+
+				maxMuxingQueueSize: false
 			}, options);
 
 			var promises = files.map(function (file) {
@@ -429,6 +443,12 @@ Scoped.require([
 						var audio_bit_rate = options.audio_bit_rate || Math.max(audioInfo.bit_rate || 64000, 64000);
 						args.push(Math.round(audio_bit_rate / 1000) + "k");
 					}
+				}
+
+				// Workaround for https://trac.ffmpeg.org/ticket/6375
+				if (options.maxMuxingQueueSize) {
+					args.push("-max_muxing_queue_size");
+					args.push("9999");
 				}
 
 //} catch(e) {console.log(e);}
