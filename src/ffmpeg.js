@@ -69,6 +69,7 @@ Scoped.require([
 					var errlines = lines.split("\n");
 					promise.asyncError({
 						message: errlines[errlines.length - 2],
+						logs: lines,
 						command: args.join(" ")
 					});
 				}

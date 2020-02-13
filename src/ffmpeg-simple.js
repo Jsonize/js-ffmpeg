@@ -15,8 +15,8 @@ Scoped.require([
 
 		ffmpeg_simple: function (files, options, output, eventCallback, eventContext, opts) {
 			return this.ffmpeg_simple_raw(files, options, output, eventCallback, eventContext, opts).mapError(function (e) {
-				if (e.message) {
-					if (e.message.indexOf("Too many packets buffered for output stream") >= 0 && !options.maxMuxingQueueSize) {
+				if (e.logs) {
+					if (e.logs.indexOf("Too many packets buffered for output stream") >= 0 && !options.maxMuxingQueueSize) {
 						options.maxMuxingQueueSize = true;
 						return this.ffmpeg_simple_raw(files, options, output, eventCallback, eventContext, opts);
 					}
