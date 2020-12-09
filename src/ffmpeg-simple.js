@@ -376,7 +376,7 @@ Scoped.require([
 
 					
 					// Video Filters
-					if (vfilters) {
+					if (vfilters && options.output_type !== "gif") {
 						args.push("-vf");
 						args.push(vfilters);
 					}
@@ -422,6 +422,13 @@ Scoped.require([
 					args.push(helpers.paramsVideoCodecUniversalConfig);
 					if (format && format.passes > 1)
 						passes = format.passes;
+				}
+				if (options.output_type === "gif") {
+					args.push(helpers.paramsHighQualityGif({
+						"width": options.width,
+						"height": options.height,
+						"framerate": options.framerate
+					}));
 				}
 				
 				
