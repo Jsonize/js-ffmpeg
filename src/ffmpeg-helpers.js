@@ -124,9 +124,9 @@ Scoped.require([
 			var args = [];
 			args.push("-filter_complex [0:v]");
 			if (options.framerate)
-				args.push(`fps=${options.framerate},`);
+				args.push("fps=" + options.framerate + ",");
 			if (options.width || options.height)
-				args.push(`scale=w=${options.width || -1}:h=${options.height || -1}:flags=lanczos,`);
+				args.push("scale=w=" + (options.width || -1) + ":h=" + (options.height || -1) + ":flags=lanczos,");
 			args.push("split[a][b];[a]palettegen[p];[b][p]paletteuse");
 			return args.join("");
 		},
