@@ -1,31 +1,33 @@
 Scoped.require([
-    "betajs:Promise",
-    "betajs:Types"
-], function (Promise, Types) {
+	"betajs:Promise",
+	"betajs:Types"
+], function(Promise, Types) {
 
-    var DockerPolyfill = require("docker-polyfill");
-    var FS = require("fs");
-	
+	var DockerPolyfill = require("docker-polyfill");
+	var FS = require("fs");
+
 	var progress_regex = /\s*([^[=\s]+)\s*=\s*([^[=\s]+)/g;
 
 	module.exports = {
-			 
-		ffmpeg: function (files, options, output, eventCallback, eventContext, opts) {
+
+		ffmpeg: function(files, options, output, eventCallback, eventContext, opts) {
 			opts = opts || {};
 			var promise = Promise.create();
 			var args = [];
 			if (Types.is_string(files))
 				files = [files];
-			files.forEach(function (file) {
+			files.forEach(function(file) {
 				args.push("-i");
 				args.push(file);
 			});
-            args = args.concat(options);
-            args.push("-y");
-            args.push(output);
-            // Touch file so docker keeps the right owner
-            FS.writeFileSync(output, "");
-			//	console.log(args.join(" "));
+			args = args.concat(options);
+			if (output) { //when running the playlist script the output won't be used
+				args.push("-y");
+				args.push(output);
+				// Touch file so docker keeps the right owner
+				FS.writeFileSync(output, "");
+				//	console.log(args.join(" "));
+			}
 			var file = DockerPolyfill.polyfillRun({
 				command: opts.ffmpeg_binary || "ffmpeg",
 				argv: args.join(" ").split(" "),
@@ -33,7 +35,7 @@ Scoped.require([
 				timeout: opts.timeout
 			});
 			var lines = "";
-			file.stderr.on("data", function (data) {
+			file.stderr.on("data", function(data) {
 				var line = data.toString();
 				lines += line;
 				if (line.indexOf("frame=") === 0) {
@@ -49,23 +51,23 @@ Scoped.require([
 						eventCallback.call(eventContext || this, result);
 				}
 			});
-			file.stderr.on("end", function (data) {
+			file.stderr.on("end", function(data) {
 				lines += data;
 			});
 			var timeouted = false;
-			file.on("timeout", function () {
+			file.on("timeout", function() {
 				timeouted = true;
 				promise.asyncError({
 					message: "Timeout reached",
 					command: args.join(" ")
 				});
 			});
-			file.on("close", function (status) {
+			file.on("close", function(status) {
 				if (timeouted)
 					return;
 				if (status === 0) {
 					promise.asyncSuccess();
-                } else {
+				} else {
 					var errlines = lines.split("\n");
 					promise.asyncError({
 						message: errlines[errlines.length - 2],
@@ -76,8 +78,8 @@ Scoped.require([
 			});
 			return promise;
 		}
-			
-	};	
-	
+
+	};
+
 });
 
