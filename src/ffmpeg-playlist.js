@@ -427,7 +427,7 @@ Scoped.require([
 					}
 					arges.push(helpers.paramsVideoFormat(format.fmt, format.vcodec, acodec, format.params));
 				}
-				args.push(helpers.paramsVideoCodecUniversalConfig);
+				args.push(...helpers.paramsVideoCodecUniversalConfig.split(" "));
 				if (format && format.passes > 1)
 					passes = format.passes;
 
@@ -443,7 +443,7 @@ Scoped.require([
 					FS.mkdirSync(target, {recursive: true});
 				let master_playlist = "#EXTM3U\n#EXT-X-VERSION:3\n";
 				const key_frames_interval = options.key_frames_interval;
-				let static_params = ` -g ${key_frames_interval} -keyint_min ${key_frames_interval} -hls_time ${options.segment_target_duration}`;
+				let static_params = `-g ${key_frames_interval} -keyint_min ${key_frames_interval} -hls_time ${options.segment_target_duration}`;
 				static_params += ` -hls_playlist_type vod`;
 				Objs.iter(options.renditions, function(obj, i) {
 					let width_height = obj.resolution.split("x");
@@ -454,10 +454,10 @@ Scoped.require([
 					let bandwidth = obj.bitrate * 1000;
 					let name = `${height}p`;
 					new_args.push(...args);
-					new_args.push(static_params);
-					new_args.push(` -vf scale=w=${width}:h=${height}:force_original_aspect_ratio=decrease`);
-					new_args.push(` -b:v ${obj.bitrate}k -maxrate ${max_rate}k -bufsize ${buf_size}k -b:a ${obj.audio_rate}k`);
-					new_args.push(` -hls_segment_filename ${target}/${name}_%03d.ts ${target}/${name}.m3u8`);
+					new_args.push(...static_params.split(" "));
+					new_args.push(...`-vf scale=w=${width}:h=${height}:force_original_aspect_ratio=decrease`.split(" "));
+					new_args.push(...`-b:v ${obj.bitrate}k -maxrate ${max_rate}k -bufsize ${buf_size}k -b:a ${obj.audio_rate}k`.split(" "));
+					new_args.push(...`-hls_segment_filename ${target}/${name}_%03d.ts ${target}/${name}.m3u8`.split(" "));
 					master_playlist += `#EXT-X-STREAM-INF:BANDWIDTH=${bandwidth},RESOLUTION=${obj.resolution}\n${name}.m3u8\n`;
 				});
 				const all_args = arges.concat(new_args);
@@ -466,11 +466,8 @@ Scoped.require([
 						eventCallback.call(eventContext || this, helpers.parseProgress(progress, duration));
 				}, this, opts).mapSuccess(function() {
 					FS.writeFileSync(target + "/playlist.m3u8", master_playlist);
-					return Promise.value(true);
-				}, this).mapError(function(err) {
-					FS.writeFileSync(target + "/playlist.m3u8", master_playlist);
-					return err;
-				});
+					return Promise.value({playlist: target + "/playlist.m3u8"});
+				}, this);
 			});
 
 		}
