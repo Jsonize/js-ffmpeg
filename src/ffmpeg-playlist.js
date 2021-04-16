@@ -70,7 +70,6 @@ Scoped.require([
 
 				maxMuxingQueueSize: false,
 
-			
 				segment_target_duration: 4,
 				max_bitrate_ratio: 1.07,
 				rate_monitor_buffer_ratio: 1.5,
@@ -123,7 +122,6 @@ Scoped.require([
 
 				var passes = 1;
 
-				var arges = [];
 				var args = [];
 
 				/*
@@ -132,9 +130,9 @@ Scoped.require([
 				 *
 				 */
 				if (options.remove_audio) {
-					arges.push("-an");
+					args.push("-an");
 				} else if (options.synchronize) {
-					arges.push(helpers.paramsSynchronize);
+					args.push(helpers.paramsSynchronize);
 				}
 
 				/*
@@ -144,11 +142,11 @@ Scoped.require([
 				 */
 				if (infos.length > 1) {
 					var videoIdx = options.video_map || 0;
-					arges.push("-map " + videoIdx + ":" + infos[videoIdx].video.index);
+					args.push("-map " + videoIdx + ":" + infos[videoIdx].video.index);
 				}
 				if (infos.length > 1) {
 					var audioIdx = options.audio_map || 1;
-					arges.push("-map " + audioIdx + ":" + infos[audioIdx].audio.index);
+					args.push("-map " + audioIdx + ":" + infos[audioIdx].audio.index);
 				}
 
 				/*
@@ -157,8 +155,8 @@ Scoped.require([
 				 * 
 				 */
 				if (audioNormalizationInfo) {
-					arges.push("-af");
-					arges.push("volume=" + (-audioNormalizationInfo.max_volume) + "dB");
+					args.push("-af");
+					args.push("volume=" + (-audioNormalizationInfo.max_volume) + "dB");
 				}
 
 				/*
@@ -169,7 +167,7 @@ Scoped.require([
 				var duration = helpers.computeDuration(infos[0].duration, options.time_start, options.time_end,
 						options.time_limit);
 				if (options.time_start || options.time_end || options.time_limit)
-					arges.push(helpers.paramsTimeDuration(options.time_start, options.time_end, options.time_limit));
+					args.push(helpers.paramsTimeDuration(options.time_start, options.time_end, options.time_limit));
 
 				var videoInfo = infos[0].video;
 				var audioInfo = infos[1] ? infos[1].audio || infos[0].audio : infos[0].audio;
@@ -207,198 +205,202 @@ Scoped.require([
 				 *
 				 */
 
-				// Step 1: Fix Rotation
-				var vfilters = [];
-				var sizing = "";
+				var renditionArgs = {};
+				Objs.iter(options.renditions, function(rendition, i) {
+					// Step 1: Fix Rotation
+					renditionArgs[rendition.resolution] = {};
+					var vfilters = [];
+					var sizing = "";
 
-				if (requiredRotation !== 0) {
-					if (requiredRotation % 180 === 90) {
-						vfilters.push("transpose=" + (requiredRotation === 90 ? 1 : 2));
-					}
-					if (requiredRotation === 180) {
-						vfilters.push("hflip,vflip");
-					}
-					arges.push("-metadata:s:v:0");
-					arges.push("rotate=0");
-				}
-
-				var modulus = options.output_type === "video" ? helpers.videoFormats[options.video_format].modulus || 1 : 1;
-				var modulusAdjust = function(value) {
-					value = Math.round(value);
-					return value % modulus === 0 ? value : (Math.round(value / modulus) * modulus);
-				};
-
-				if (modulusAdjust(sourceWidth) !== sourceWidth || modulusAdjust(sourceHeight) !== sourceHeight ||
-						options.width || options.height) {
-
-					// Step 2: Fix Size & Ratio
-					targetWidth = options.width || sourceWidth;
-					targetHeight = options.height || sourceHeight;
-					targetRatio = targetWidth / targetHeight;
-					ratioSourceTarget = Math.sign(sourceWidth * targetHeight - targetWidth * sourceHeight);
-
-					if (options.ratio_strategy !== "fixed" && ratioSourceTarget !== 0) {
-						if ((options.ratio_strategy === "stretch" && ratioSourceTarget > 0) ||
-								(options.ratio_strategy === "shrink" && ratioSourceTarget < 0))
-							targetWidth = targetHeight * sourceRatio;
-						if ((options.ratio_strategy === "stretch" && ratioSourceTarget < 0) ||
-								(options.ratio_strategy === "shrink" && ratioSourceTarget > 0))
-							targetHeight = targetWidth / sourceRatio;
-						targetRatio = sourceRatio;
-						ratioSourceTarget = 0;
-					}
-
-					if (options.size_strategy === "shrink" && targetWidth > sourceWidth && targetHeight > sourceHeight) {
-						targetWidth = ratioSourceTarget < 0 ? sourceHeight * targetRatio : sourceWidth;
-						targetHeight = ratioSourceTarget >= 0 ? targetWidth / targetRatio : sourceHeight;
-					} else if (options.size_strategy === "stretch" && targetWidth < sourceWidth && targetHeight <
-							sourceHeight) {
-						targetWidth = ratioSourceTarget >= 0 ? sourceHeight * targetRatio : sourceWidth;
-						targetHeight = ratioSourceTarget < 0 ? targetWidth / targetRatio : sourceHeight;
-					}
-
-					var vf = [];
-
-					// Step 3: Modulus
-
-					targetWidth = modulusAdjust(targetWidth);
-					targetHeight = modulusAdjust(targetHeight);
-
-					var cropped = false;
-					var addCrop = function(x, y, multi) {
-						x = Math.round(x);
-						y = Math.round(y);
-						if (x === 0 && y === 0)
-							return;
-						cropped = true;
-						var cropWidth = targetWidth - 2 * x;
-						var cropHeight = targetHeight - 2 * y;
-						vfilters.push("scale=" + [
-							multi || ratioSourceTarget >= 0 ? cropWidth : targetWidth,
-							!multi && ratioSourceTarget >= 0 ? targetHeight : cropHeight].join(":"));
-						vfilters.push("crop=" + [
-							!multi && ratioSourceTarget <= 0 ? cropWidth : targetWidth,
-							multi || ratioSourceTarget <= 0 ? targetHeight : cropHeight,
-							-x,
-							-y].join(":"));
-					};
-					var padded = false;
-					var addPad = function(x, y, multi) {
-						x = Math.round(x);
-						y = Math.round(y);
-						if (x === 0 && y === 0)
-							return;
-						padded = true;
-						var padWidth = targetWidth - 2 * x;
-						var padHeight = targetHeight - 2 * y;
-						vfilters.push("scale=" + [
-							multi || ratioSourceTarget <= 0 ? padWidth : targetWidth,
-							!multi && ratioSourceTarget <= 0 ? targetHeight : padHeight].join(":"));
-						vfilters.push("pad=" + [
-							!multi && ratioSourceTarget >= 0 ? padWidth : targetWidth,
-							multi || ratioSourceTarget >= 0 ? targetHeight : padHeight,
-							x,
-							y].join(":"));
-					};
-
-					// Step 4: Crop & Pad
-					if (targetWidth >= sourceWidth && targetHeight >= sourceHeight) {
-						if (options.stretch_strategy === "pad")
-							addPad((targetWidth - sourceWidth) / 2,
-									(targetHeight - sourceHeight) / 2,
-									true);
-						else if (options.stretch_strategy === "stretch-pad")
-							addPad(ratioSourceTarget <= 0 ? (targetWidth - targetHeight * sourceRatio) / 2 : 0,
-									ratioSourceTarget >= 0 ? (targetHeight - targetWidth / sourceRatio) / 2 : 0);
-						else // stretch-crop
-							addCrop(ratioSourceTarget >= 0 ? (targetWidth - targetHeight * sourceRatio) / 2 : 0,
-									ratioSourceTarget <= 0 ? (targetHeight - targetWidth / sourceRatio) / 2 : 0);
-					} else if (targetWidth <= sourceWidth && targetHeight <= sourceHeight) {
-						if (options.shrink_strategy === "crop")
-							addCrop((targetWidth - sourceWidth) / 2,
-									(targetHeight - sourceHeight) / 2,
-									true);
-						else if (options.shrink_strategy === "shrink-crop")
-							addCrop(ratioSourceTarget >= 0 ? (targetWidth - targetHeight * sourceRatio) / 2 : 0,
-									ratioSourceTarget <= 0 ? (targetHeight - targetWidth / sourceRatio) / 2 : 0);
-						else // shrink-pad
-							addPad(ratioSourceTarget <= 0 ? (targetWidth - targetHeight * sourceRatio) / 2 : 0,
-									ratioSourceTarget >= 0 ? (targetHeight - targetWidth / sourceRatio) / 2 : 0);
-					} else {
-						if (options.mixed_strategy === "shrink-pad")
-							addPad(ratioSourceTarget <= 0 ? (targetWidth - targetHeight * sourceRatio) / 2 : 0,
-									ratioSourceTarget >= 0 ? (targetHeight - targetWidth / sourceRatio) / 2 : 0);
-						else if (options.mixed_strategy === "stretch-crop")
-							addCrop(ratioSourceTarget >= 0 ? (targetWidth - targetHeight * sourceRatio) / 2 : 0,
-									ratioSourceTarget <= 0 ? (targetHeight - targetWidth / sourceRatio) / 2 : 0);
-						else {
-							// crop-pad
-							cropped = true;
-							padded = true;
-							var direction = ratioSourceTarget >= 0;
-							var dirX = Math.abs(Math.round((sourceWidth - targetWidth) / 2));
-							var dirY = Math.abs(Math.round((sourceHeight - targetHeight) / 2));
-							vfilters.push("crop=" + [
-								direction ? targetWidth : sourceWidth,
-								direction ? sourceHeight : targetHeight,
-								direction ? dirX : 0,
-								direction ? 0 : dirY].join(":"));
-							vfilters.push(
-									"pad=" + [targetWidth, targetHeight, direction ? 0 : dirX, direction ? dirY : 0].join(":"));
+					if (requiredRotation !== 0) {
+						if (requiredRotation % 180 === 90) {
+							vfilters.push("transpose=" + (requiredRotation === 90 ? 1 : 2));
 						}
+						if (requiredRotation === 180) {
+							vfilters.push("hflip,vflip");
+						}
+						args.push("-metadata:s:v:0");
+						args.push("rotate=0");
 					}
 
-					if (!padded && !cropped)
-						sizing = targetWidth + "x" + targetHeight;
+					let widthHeight = rendition.resolution.split("x");
+					let renditionWidth = Types.parseInt(widthHeight[0]);
+					let renditionHeight = Types.parseInt(widthHeight[1]);
 
-				}
+					var modulus = options.output_type === "video" ? helpers.videoFormats[options.video_format].modulus || 1 : 1;
+					var modulusAdjust = function(value) {
+						value = Math.round(value);
+						return value % modulus === 0 ? value : (Math.round(value / modulus) * modulus);
+					};
 
-				vfilters = vfilters.join(",");
+					if (modulusAdjust(sourceWidth) !== sourceWidth || modulusAdjust(sourceHeight) !== sourceHeight ||
+							renditionWidth || renditionHeight) {
 
-				/*
-				 *
-				 * Watermark (depends on sizing)
-				 *
-				 */
+						// Step 2: Fix Size & Ratio
+						targetWidth = renditionWidth || sourceWidth;
+						targetHeight = renditionHeight || sourceHeight;
+						targetRatio = targetWidth / targetHeight;
+						ratioSourceTarget = Math.sign(sourceWidth * targetHeight - targetWidth * sourceHeight);
 
-				var watermarkFilters = options.watermarks.map(function(watermark, i) {
-					var watermarkInfo = watermarkInfos[i];
-					var watermarkMeta = watermarkInfo.image || watermarkInfo.video;
-					var scaleWidth = watermarkMeta.width;
-					var scaleHeight = watermarkMeta.height;
-					var maxWidth = targetWidth * watermark.watermark_size;
-					var maxHeight = targetHeight * watermark.watermark_size;
-					if (scaleWidth > maxWidth || scaleHeight > maxHeight) {
-						var watermarkRatio = maxWidth * scaleHeight >= maxHeight * scaleWidth;
-						scaleWidth = watermarkRatio ? watermarkMeta.width * maxHeight / watermarkMeta.height : maxWidth;
-						scaleHeight = !watermarkRatio ? watermarkMeta.height * maxWidth / watermarkMeta.width : maxHeight;
+						if (options.ratio_strategy !== "fixed" && ratioSourceTarget !== 0) {
+							if ((options.ratio_strategy === "stretch" && ratioSourceTarget > 0) ||
+									(options.ratio_strategy === "shrink" && ratioSourceTarget < 0))
+								targetWidth = targetHeight * sourceRatio;
+							if ((options.ratio_strategy === "stretch" && ratioSourceTarget < 0) ||
+									(options.ratio_strategy === "shrink" && ratioSourceTarget > 0))
+								targetHeight = targetWidth / sourceRatio;
+							targetRatio = sourceRatio;
+							ratioSourceTarget = 0;
+						}
+
+						if (options.size_strategy === "shrink" && targetWidth > sourceWidth && targetHeight > sourceHeight) {
+							targetWidth = ratioSourceTarget < 0 ? sourceHeight * targetRatio : sourceWidth;
+							targetHeight = ratioSourceTarget >= 0 ? targetWidth / targetRatio : sourceHeight;
+						} else if (options.size_strategy === "stretch" && targetWidth < sourceWidth && targetHeight <
+								sourceHeight) {
+							targetWidth = ratioSourceTarget >= 0 ? sourceHeight * targetRatio : sourceWidth;
+							targetHeight = ratioSourceTarget < 0 ? targetWidth / targetRatio : sourceHeight;
+						}
+
+						var vf = [];
+
+						// Step 3: Modulus
+
+						targetWidth = modulusAdjust(targetWidth);
+						targetHeight = modulusAdjust(targetHeight);
+
+						var cropped = false;
+						var addCrop = function(x, y, multi) {
+							x = Math.round(x);
+							y = Math.round(y);
+							if (x === 0 && y === 0)
+								return;
+							cropped = true;
+							var cropWidth = targetWidth - 2 * x;
+							var cropHeight = targetHeight - 2 * y;
+							vfilters.push("scale=" + [
+								multi || ratioSourceTarget >= 0 ? cropWidth : targetWidth,
+								!multi && ratioSourceTarget >= 0 ? targetHeight : cropHeight].join(":"));
+							vfilters.push("crop=" + [
+								!multi && ratioSourceTarget <= 0 ? cropWidth : targetWidth,
+								multi || ratioSourceTarget <= 0 ? targetHeight : cropHeight,
+								-x,
+								-y].join(":"));
+						};
+						var padded = false;
+						var addPad = function(x, y, multi) {
+							x = Math.round(x);
+							y = Math.round(y);
+							if (x === 0 && y === 0)
+								return;
+							padded = true;
+							var padWidth = targetWidth - 2 * x;
+							var padHeight = targetHeight - 2 * y;
+							vfilters.push("scale=" + [
+								multi || ratioSourceTarget <= 0 ? padWidth : targetWidth,
+								!multi && ratioSourceTarget <= 0 ? targetHeight : padHeight].join(":"));
+							vfilters.push("pad=" + [
+								!multi && ratioSourceTarget >= 0 ? padWidth : targetWidth,
+								multi || ratioSourceTarget >= 0 ? targetHeight : padHeight,
+								x,
+								y].join(":"));
+						};
+
+						// Step 4: Crop & Pad
+						if (targetWidth >= sourceWidth && targetHeight >= sourceHeight) {
+							if (options.stretch_strategy === "pad")
+								addPad((targetWidth - sourceWidth) / 2,
+										(targetHeight - sourceHeight) / 2,
+										true);
+							else if (options.stretch_strategy === "stretch-pad")
+								addPad(ratioSourceTarget <= 0 ? (targetWidth - targetHeight * sourceRatio) / 2 : 0,
+										ratioSourceTarget >= 0 ? (targetHeight - targetWidth / sourceRatio) / 2 : 0);
+							else // stretch-crop
+								addCrop(ratioSourceTarget >= 0 ? (targetWidth - targetHeight * sourceRatio) / 2 : 0,
+										ratioSourceTarget <= 0 ? (targetHeight - targetWidth / sourceRatio) / 2 : 0);
+						} else if (targetWidth <= sourceWidth && targetHeight <= sourceHeight) {
+							if (options.shrink_strategy === "crop")
+								addCrop((targetWidth - sourceWidth) / 2,
+										(targetHeight - sourceHeight) / 2,
+										true);
+							else if (options.shrink_strategy === "shrink-crop")
+								addCrop(ratioSourceTarget >= 0 ? (targetWidth - targetHeight * sourceRatio) / 2 : 0,
+										ratioSourceTarget <= 0 ? (targetHeight - targetWidth / sourceRatio) / 2 : 0);
+							else // shrink-pad
+								addPad(ratioSourceTarget <= 0 ? (targetWidth - targetHeight * sourceRatio) / 2 : 0,
+										ratioSourceTarget >= 0 ? (targetHeight - targetWidth / sourceRatio) / 2 : 0);
+						} else {
+							if (options.mixed_strategy === "shrink-pad")
+								addPad(ratioSourceTarget <= 0 ? (targetWidth - targetHeight * sourceRatio) / 2 : 0,
+										ratioSourceTarget >= 0 ? (targetHeight - targetWidth / sourceRatio) / 2 : 0);
+							else if (options.mixed_strategy === "stretch-crop")
+								addCrop(ratioSourceTarget >= 0 ? (targetWidth - targetHeight * sourceRatio) / 2 : 0,
+										ratioSourceTarget <= 0 ? (targetHeight - targetWidth / sourceRatio) / 2 : 0);
+							else {
+								// crop-pad
+								cropped = true;
+								padded = true;
+								var direction = ratioSourceTarget >= 0;
+								var dirX = Math.abs(Math.round((sourceWidth - targetWidth) / 2));
+								var dirY = Math.abs(Math.round((sourceHeight - targetHeight) / 2));
+								vfilters.push("crop=" + [
+									direction ? targetWidth : sourceWidth,
+									direction ? sourceHeight : targetHeight,
+									direction ? dirX : 0,
+									direction ? 0 : dirY].join(":"));
+								vfilters.push(
+										"pad=" + [targetWidth, targetHeight, direction ? 0 : dirX, direction ? dirY : 0].join(":"));
+							}
+						}
+
+						if (!padded && !cropped)
+							renditionArgs[rendition.resolution].sizing = targetWidth + "x" + targetHeight;
+
 					}
-					var posX = watermark.watermark_x * (targetWidth - scaleWidth);
-					var posY = watermark.watermark_y * (targetHeight - scaleHeight);
 
-					return [
-						"[prewm" + i + "];",
-						"movie=" + watermark.watermark + ",",
-						"scale=" + [Math.round(scaleWidth), Math.round(scaleHeight)].join(":"),
-						"[wm" + i + "];",
-						"[prewm" + i + "][wm" + i + "]",
-						"overlay=" + [Math.round(posX), Math.round(posY)].join(":")
-					].join("");
-				}).join("");
+					vfilters = vfilters.join(",");
 
-				if (watermarkFilters) {
-					if (vfilters)
-						vfilters = "[in]" + vfilters + watermarkFilters + "[out]";
-					else
-						vfilters = watermarkFilters.substring("[prewm0];".length).replace("[prewm0]", "[in]") + "[out]";
-				}
+					/*
+					 *
+					 * Watermark (depends on sizing)
+					 *
+					 */
 
-				// Video Filters
-				if (vfilters && options.output_type !== "gif") {
-					arges.push("-vf");
-					arges.push(vfilters);
-				}
+					var watermarkFilters = options.watermarks.map(function(watermark, i) {
+						var watermarkInfo = watermarkInfos[i];
+						var watermarkMeta = watermarkInfo.image || watermarkInfo.video;
+						var scaleWidth = watermarkMeta.width;
+						var scaleHeight = watermarkMeta.height;
+						var maxWidth = targetWidth * watermark.watermark_size;
+						var maxHeight = targetHeight * watermark.watermark_size;
+						if (scaleWidth > maxWidth || scaleHeight > maxHeight) {
+							var watermarkRatio = maxWidth * scaleHeight >= maxHeight * scaleWidth;
+							scaleWidth = watermarkRatio ? watermarkMeta.width * maxHeight / watermarkMeta.height : maxWidth;
+							scaleHeight = !watermarkRatio ? watermarkMeta.height * maxWidth / watermarkMeta.width : maxHeight;
+						}
+						var posX = watermark.watermark_x * (targetWidth - scaleWidth);
+						var posY = watermark.watermark_y * (targetHeight - scaleHeight);
 
+						return [
+							"[prewm" + i + "];",
+							"movie=" + watermark.watermark + ",",
+							"scale=" + [Math.round(scaleWidth), Math.round(scaleHeight)].join(":"),
+							"[wm" + i + "];",
+							"[prewm" + i + "][wm" + i + "]",
+							"overlay=" + [Math.round(posX), Math.round(posY)].join(":")
+						].join("");
+					}).join("");
+
+					if (watermarkFilters) {
+						if (vfilters)
+							vfilters = "[in]" + vfilters + watermarkFilters + "[out]";
+						else
+							vfilters = watermarkFilters.substring("[prewm0];".length).replace("[prewm0]", "[in]") + "[out]";
+					}
+
+					renditionArgs[rendition.resolution].vf = vfilters;
+
+				});
 				/*
 				 * 
 				 * Format
@@ -406,10 +408,10 @@ Scoped.require([
 				 */
 
 				if (options.video_profile && options.video_format === "mp4") {
-					arges.push(helpers.paramsVideoProfile(options.video_profile));
+					args.push(helpers.paramsVideoProfile(options.video_profile));
 				}
 				if (options.faststart && options.video_format === "mp4") {
-					arges.push(helpers.paramsFastStart);
+					args.push(helpers.paramsFastStart);
 				}
 				var format = helpers.videoFormats[options.video_format];
 				if (format && (format.fmt || format.vcodec || format.acodec || format.params)) {
@@ -425,7 +427,7 @@ Scoped.require([
 							acodec = format.acodec;
 						acodec = acodec[0];
 					}
-					arges.push(helpers.paramsVideoFormat(format.fmt, format.vcodec, acodec, format.params));
+					args.push(helpers.paramsVideoFormat(format.fmt, format.vcodec, acodec, format.params));
 				}
 				args.push(...helpers.paramsVideoCodecUniversalConfig.split(" "));
 				if (format && format.passes > 1)
@@ -437,35 +439,40 @@ Scoped.require([
 					args.push("9999");
 				}
 
-				let new_args = [];
+				let newArgs = [];
 				const target = output;
 				if (!FS.existsSync(target))
 					FS.mkdirSync(target, {recursive: true});
-				let master_playlist = "#EXTM3U\n#EXT-X-VERSION:3\n";
-				const key_frames_interval = options.key_frames_interval;
-				let static_params = `-g ${key_frames_interval} -keyint_min ${key_frames_interval} -hls_time ${options.segment_target_duration}`;
-				static_params += ` -hls_playlist_type vod`;
+				let masterPlaylist = "#EXTM3U\n#EXT-X-VERSION:3\n";
+				const keyFramesInterval = options.key_frames_interval;
+				let staticParams = `-g ${keyFramesInterval} -keyint_min ${keyFramesInterval} -hls_time ${options.segment_target_duration}`;
+				staticParams += ` -hls_playlist_type vod`;
 				Objs.iter(options.renditions, function(obj, i) {
-					let width_height = obj.resolution.split("x");
-					let width = Types.parseInt(width_height[0]);
-					let height = Types.parseInt(width_height[1]);
-					let max_rate = obj.bitrate * options.max_bitrate_ratio;
-					let buf_size = obj.bitrate * options.rate_monitor_buffer_ratio;
+					let resolution = renditionArgs[obj.resolution].sizing ? renditionArgs[obj.resolution].sizing : obj.resolution;
+					let widthHeight = resolution.split("x");
+					let width = Types.parseInt(widthHeight[0]);
+					let height = Types.parseInt(widthHeight[1]);
+					let maxRate = obj.bitrate * options.max_bitrate_ratio;
+					let bufSize = obj.bitrate * options.rate_monitor_buffer_ratio;
 					let bandwidth = obj.bitrate * 1000;
 					let name = `${height}p`;
-					new_args.push(...args);
-					new_args.push(...static_params.split(" "));
-					new_args.push(...`-vf scale=w=${width}:h=${height}:force_original_aspect_ratio=decrease`.split(" "));
-					new_args.push(...`-b:v ${obj.bitrate}k -maxrate ${max_rate}k -bufsize ${buf_size}k -b:a ${obj.audio_rate}k`.split(" "));
-					new_args.push(...`-hls_segment_filename ${target}/${name}_%03d.ts ${target}/${name}.m3u8`.split(" "));
-					master_playlist += `#EXT-X-STREAM-INF:BANDWIDTH=${bandwidth},RESOLUTION=${obj.resolution}\n${name}.m3u8\n`;
+					newArgs.push(...args);
+					newArgs.push(...staticParams.split(" "));
+					if (renditionArgs[obj.resolution].vf) {
+						newArgs.push(...`-vf ${renditionArgs[obj.resolution].vf}`.split(" "));
+					} else {
+						newArgs.push(...`-vf scale=w=${width}:h=${height}:force_original_aspect_ratio=decrease`.split(" "));
+					}
+					newArgs.push(
+							...`-b:v ${obj.bitrate}k -maxrate ${maxRate}k -bufsize ${bufSize}k -b:a ${obj.audio_rate}k`.split(" "));
+					newArgs.push(...`-hls_segment_filename ${target}/${name}_%03d.ts ${target}/${name}.m3u8`.split(" "));
+					masterPlaylist += `#EXT-X-STREAM-INF:BANDWIDTH=${bandwidth},RESOLUTION=${resolution}\n${name}.m3u8\n`;
 				});
-				const all_args = arges.concat(new_args);
-				return ffmpeg_multi_pass.ffmpeg_multi_pass(files, all_args, passes, null, function(progress) {
+				return ffmpeg_multi_pass.ffmpeg_multi_pass(files, newArgs, passes, null, function(progress) {
 					if (eventCallback)
 						eventCallback.call(eventContext || this, helpers.parseProgress(progress, duration));
 				}, this, opts).mapSuccess(function() {
-					FS.writeFileSync(target + "/playlist.m3u8", master_playlist);
+					FS.writeFileSync(target + "/playlist.m3u8", masterPlaylist);
 					return Promise.value({playlist: target + "/playlist.m3u8"});
 				}, this);
 			});
