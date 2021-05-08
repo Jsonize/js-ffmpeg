@@ -21,5 +21,8 @@
         "docker-polyfill": "~0.0.1",
         "node-getopt": "^0.3.2",
         "tmp": "0.0.33"
+    },
+    "scripts": {
+        "test": "qunit tests/tests/*.js"
     }
 }
