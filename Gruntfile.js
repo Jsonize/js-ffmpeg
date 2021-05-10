@@ -16,8 +16,7 @@ module.exports = function(grunt) {
 		},
 		jshint : {
 			options : {
-				es5 : false,
-				es3 : true
+				esversion: 6
 			},
 			source : [ "./Gruntfile.js", "./index.js", "./tests/tests/*.js",
 					"./src/*.js" ]
