@@ -3,6 +3,8 @@ var jsffmpeg = require(__dirname + "/../index.js");
 var args = require('node-getopt').create([
 	["", "source=FILE", "source video"],
 	["", "target=FILE", "target video"],
+	["", "width=WIDTH", "target width"],
+	["", "height=HEIGHT", "target height"],
     ["", "watermark=FILE", "watermark image"],
 	["", "docker=CONTAINER", "docker"],
     ["", "timeout=MS", "timeout"],
@@ -14,8 +16,8 @@ var args = require('node-getopt').create([
 ]).bindHelp().parseSystem().options;
 
 jsffmpeg.ffmpeg_graceful(args.source, {
-	width: 640,
-	height: 360,
+	width: parseInt(args.width) || 640,
+	height: parseInt(args.height) || 360,
 	watermark: args.watermark,
 	//normalize_audio: true
 	ratio_strategy: args.ratiostrategy,
@@ -24,9 +26,8 @@ jsffmpeg.ffmpeg_graceful(args.source, {
 	stretch_strategy: args.stretchstrategy,
 	mixed_strategy: args.mixedstrategy
 }, args.target, null, null, {
-    test_ffmpeg: true,
-	timeout: args.timeout
-	/*docker: {
+    /*
+    docker: {
         "container" : "jrottenberg/ffmpeg",
         "proxy": "localhost:1234",
         "replaceArguments": {
@@ -45,12 +46,15 @@ jsffmpeg.ffmpeg_graceful(args.source, {
             "recoverChmod": true
         }
     },
-	"test_info" : {
-		"capabilities" : {
- 		   "auto_rotate" : true
-		},
-		"encoders" : ["libdfk_aac", "aac"]
-	}*/
+    "test_info" : {
+        "capabilities" : {
+            "auto_rotate" : true
+        },
+        "encoders" : ["libdfk_aac", "aac"]
+    },
+    */
+    test_ffmpeg: true,
+	timeout: args.timeout
 }).success(function (data) {
 	console.log(data);
 }).error(function (error) {
