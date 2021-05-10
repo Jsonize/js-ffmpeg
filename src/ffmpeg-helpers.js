@@ -74,7 +74,7 @@ Scoped.require([
 				args.push(this.formatTimeCode(time_start));
 			}
 			if (time_end) {
-				args.push("-t");
+				args.push("-to");
 				args.push(this.formatTimeCode(time_end));
 			}
 			if (time_limit)  {
