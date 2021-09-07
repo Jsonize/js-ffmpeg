@@ -44,7 +44,7 @@ This is a simple wrapper for FFMPEG and FFPROBE.
 	});
 	
 	// improved and simplified call of ffmpeg (source(s), arguments, target, progress callback)
-	ffmpeg.ffmpeg('video.mp4', {
+	ffmpeg.ffmpeg_simple('video.mp4', {
 		width: 640,
 		height: 360,
 		auto_rotate: true,
