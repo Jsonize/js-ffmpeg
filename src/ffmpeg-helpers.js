@@ -23,6 +23,24 @@ Scoped.require([
 				modulus: 2,
 				params: "-pix_fmt yuv420p"
 			},
+			"mp4-av1": {
+				bframes: true,
+				acodec: ["aac", "libfaac", "libfdk_aac", "libvo_aacenc"],
+				vcodec: "av1",
+				fmt: "mp4",
+				passes: 2,
+				modulus: 2,
+				params: "-strict experimental"
+			},
+			"avi": {
+				bframes: true,
+				acodec: ["aac", "libfdk_aac", "libfaac", "libvo_aacenc"],
+				vcodec: "libaom-av1",
+				fmt: "avi",
+				passes: 2,
+				modulus: 2,
+				params: "-strict experimental"
+			},
 			"m3u8": {
 				bframes: true,
 				acodec: "aac",
