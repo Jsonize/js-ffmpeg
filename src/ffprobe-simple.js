@@ -10,7 +10,7 @@ Scoped.require([
 				return key in source ? parseInt(source[key], 10) : undefined;
 			};
 			
-			if (!require('fs').existsSync(file))
+			if (!Strings.STRICT_URL_REGEX.test(file) && !require('fs').existsSync(file))
 				return Promise.error("File does not exist");
 			return require(__dirname + "/ffprobe.js").ffprobe(file, options).mapSuccess(function (json) {
 				if (!json.format || !json.streams)
