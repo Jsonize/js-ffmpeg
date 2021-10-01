@@ -180,17 +180,16 @@ Scoped.require([
 				raw.progress = (raw.pass - 1) / raw.passes + raw.time / duration / raw.passes;
 			return raw;
 		},
-		
+
 		computeDuration: function (duration, time_start, time_end, time_limit) {
-			if (time_start) 
-				duration -= time_start;
-			if (time_end)
-				duration -= time_end - (time_start || 0);
+			time_end = time_end > 0 && time_end < duration ? time_end : duration;
+			time_start = time_start > 0 ? Math.min(time_start, duration) : 0;
+			duration = Math.max(time_end - time_start, 0);
 			if (time_limit)
 				duration = Math.min(duration, time_limit);
 			return duration;
 		}
-			
+
 	};
 	
 });
