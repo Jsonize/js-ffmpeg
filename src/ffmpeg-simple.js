@@ -171,6 +171,8 @@ Scoped.require([
 				
 				
 				var videoInfo = infos[0].video;
+				if (infos[0].bit_rate && (!videoInfo.bit_rate || infos[0].bit_rate > videoInfo.bit_rate))
+					videoInfo.bit_rate = infos[0].bit_rate;
 				var audioInfo = infos[1] ? infos[1].audio || infos[0].audio : infos[0].audio;
 				
 				
