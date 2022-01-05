@@ -110,7 +110,7 @@ Scoped.require([
 			return "-profile:v " + video_profile;
 		},
 		
-		paramsFastStart: "-movflags faststart",
+		paramsFastStart: "-movflags +faststart",
 		
 		paramsVideoFormat: function (fmt, vcodec, acodec, params) {
 			var args = [];
