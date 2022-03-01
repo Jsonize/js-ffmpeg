@@ -5,9 +5,7 @@ var args = require('node-getopt').create([
 	["", "target=FILE", "target video"]
 ]).bindHelp().parseSystem().options;
 
-jsffmpeg.ffmpeg_graceful(args.source, {
-	faststart: true
-}, args.target, null, null, {
+jsffmpeg.ffmpeg_faststart(args.source, args.target, null, null, {
     /*
     docker: {
         "container" : "jrottenberg/ffmpeg",
