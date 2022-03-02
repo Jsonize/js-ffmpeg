@@ -142,6 +142,35 @@ Scoped.define("jsonize:JsonizeFfmpegSimpleTask", [
 	return Cls;
 });
 
+Scoped.define("jsonize:JsonizeFfmpegFaststartTask", [
+	"jsonize:AbstractJsonizeTask",
+	"jsonize:JsonizeTaskRegistry",
+	"betajs:Promise"
+], function (Class, TaskRegistry, Promise, scoped) {
+	var Cls = Class.extend({scoped: scoped}, {
+
+		_run: function (payload) {
+			return jsffmpeg.ffmpeg_faststart(
+				payload.source || payload.sources,
+				payload.output,
+				this._event,
+				this,
+				{
+					docker: payload.docker,
+					timeout: payload.timeout,
+					test_ffmpeg: payload.test_ffmpeg,
+					test_info: payload.test_info
+				}
+			);
+		}
+
+	});
+
+	TaskRegistry.register("ffmpeg-faststart", Cls);
+
+	return Cls;
+});
+
 
 Scoped.define("jsonize:JsonizeFfmpegGracefulTask", [
     "jsonize:AbstractJsonizeTask",
