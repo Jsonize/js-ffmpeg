@@ -107,7 +107,8 @@ Scoped.require([
 				if (options.normalize_audio)
 					audioNormalizationInfo = infos.pop();
 
-				var isImage = infos.length === 1 && infos[0].image && !infos[0].video && !infos[0].audio;
+				var isImage = infos.length === 1 && ((infos[0].image && !infos[0].video && !infos[0].audio) ||
+					(infos[0].video && infos[0].format_default_extension.includes("_pipe")));
 
 				var passes = 1;
 				
